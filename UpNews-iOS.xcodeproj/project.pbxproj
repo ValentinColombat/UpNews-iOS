@@ -1,0 +1,761 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1588C7572EF94F7500551A36 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1588C7562EF94F7500551A36 /* Auth */; };
+		1588C7592EF94F8500551A36 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 1588C7582EF94F8500551A36 /* GoogleSignIn */; };
+		1588C75B2EF94F8900551A36 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1588C75A2EF94F8900551A36 /* GoogleSignInSwift */; };
+		158F91E12F1CE95700AD81AA /* DotLottie in Frameworks */ = {isa = PBXBuildFile; productRef = 158F91E02F1CE95700AD81AA /* DotLottie */; };
+		15C2F4152EEEF78500A1F346 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 15C2F4142EEEF78500A1F346 /* PostgREST */; };
+		15C2F4172EEEF78500A1F346 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 15C2F4162EEEF78500A1F346 /* Supabase */; };
+		15C4E0C62EF2A17400ED02C5 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 15C4E0C52EF2A17400ED02C5 /* Lottie */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		15C90B8A2EED7867003728A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15C90B742EED7865003728A0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 15C90B7B2EED7865003728A0;
+			remoteInfo = "UpNews-iOS";
+		};
+		15C90B942EED7867003728A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15C90B742EED7865003728A0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 15C90B7B2EED7865003728A0;
+			remoteInfo = "UpNews-iOS";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		158F91DD2F1CE2DD00AD81AA /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		15C2F4042EEEF4F000A1F346 /* UpNews-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "UpNews-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		154CC0E42EF5939300A734ED /* Exceptions for "UpNews-iOS" folder in "UpNews-iOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				Services/GoogleSecrets.example.swift,
+				Services/SupabaseSecrets.swift,
+			);
+			target = 15C90B7B2EED7865003728A0 /* UpNews-iOS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		150D514C2F1E7C630042D8A1 /* Exceptions for "UpNews-iOS" folder in "Copy Bundle Resources" phase from "UpNews-iOS" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 15C90B7A2EED7865003728A0 /* Resources */;
+			membershipExceptions = (
+				Services/SupabaseSecrets.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		15C90B7E2EED7865003728A0 /* UpNews-iOS */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				154CC0E42EF5939300A734ED /* Exceptions for "UpNews-iOS" folder in "UpNews-iOS" target */,
+				150D514C2F1E7C630042D8A1 /* Exceptions for "UpNews-iOS" folder in "Copy Bundle Resources" phase from "UpNews-iOS" target */,
+			);
+			path = "UpNews-iOS";
+			sourceTree = "<group>";
+		};
+		15C90B8C2EED7867003728A0 /* UpNews-iOSTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "UpNews-iOSTests";
+			sourceTree = "<group>";
+		};
+		15C90B962EED7867003728A0 /* UpNews-iOSUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "UpNews-iOSUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		15C90B792EED7865003728A0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1588C7592EF94F8500551A36 /* GoogleSignIn in Frameworks */,
+				15C2F4172EEEF78500A1F346 /* Supabase in Frameworks */,
+				15C2F4152EEEF78500A1F346 /* PostgREST in Frameworks */,
+				1588C75B2EF94F8900551A36 /* GoogleSignInSwift in Frameworks */,
+				1588C7572EF94F7500551A36 /* Auth in Frameworks */,
+				15C4E0C62EF2A17400ED02C5 /* Lottie in Frameworks */,
+				158F91E12F1CE95700AD81AA /* DotLottie in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15C90B862EED7867003728A0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15C90B902EED7867003728A0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1588C7552EF94F7500551A36 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		15C90B732EED7865003728A0 = {
+			isa = PBXGroup;
+			children = (
+				15C90B7E2EED7865003728A0 /* UpNews-iOS */,
+				15C90B8C2EED7867003728A0 /* UpNews-iOSTests */,
+				15C90B962EED7867003728A0 /* UpNews-iOSUITests */,
+				15C2F4042EEEF4F000A1F346 /* UpNews-iOS.app */,
+				15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */,
+				15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */,
+				1588C7552EF94F7500551A36 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		15C90B7B2EED7865003728A0 /* UpNews-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15C90B9D2EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOS" */;
+			buildPhases = (
+				15C90B782EED7865003728A0 /* Sources */,
+				15C90B792EED7865003728A0 /* Frameworks */,
+				15C90B7A2EED7865003728A0 /* Resources */,
+				158F91DD2F1CE2DD00AD81AA /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				15C90B7E2EED7865003728A0 /* UpNews-iOS */,
+			);
+			name = "UpNews-iOS";
+			packageProductDependencies = (
+				15C2F4142EEEF78500A1F346 /* PostgREST */,
+				15C2F4162EEEF78500A1F346 /* Supabase */,
+				15C4E0C52EF2A17400ED02C5 /* Lottie */,
+				1588C7562EF94F7500551A36 /* Auth */,
+				1588C7582EF94F8500551A36 /* GoogleSignIn */,
+				1588C75A2EF94F8900551A36 /* GoogleSignInSwift */,
+				158F91E02F1CE95700AD81AA /* DotLottie */,
+			);
+			productName = "UpNews-iOS";
+			productReference = 15C2F4042EEEF4F000A1F346 /* UpNews-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		15C90B882EED7867003728A0 /* UpNews-iOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15C90BA02EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOSTests" */;
+			buildPhases = (
+				15C90B852EED7867003728A0 /* Sources */,
+				15C90B862EED7867003728A0 /* Frameworks */,
+				15C90B872EED7867003728A0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15C90B8B2EED7867003728A0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				15C90B8C2EED7867003728A0 /* UpNews-iOSTests */,
+			);
+			name = "UpNews-iOSTests";
+			packageProductDependencies = (
+			);
+			productName = "UpNews-iOSTests";
+			productReference = 15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		15C90B922EED7867003728A0 /* UpNews-iOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15C90BA32EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOSUITests" */;
+			buildPhases = (
+				15C90B8F2EED7867003728A0 /* Sources */,
+				15C90B902EED7867003728A0 /* Frameworks */,
+				15C90B912EED7867003728A0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15C90B952EED7867003728A0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				15C90B962EED7867003728A0 /* UpNews-iOSUITests */,
+			);
+			name = "UpNews-iOSUITests";
+			packageProductDependencies = (
+			);
+			productName = "UpNews-iOSUITests";
+			productReference = 15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		15C90B742EED7865003728A0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					15C90B7B2EED7865003728A0 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					15C90B882EED7867003728A0 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 15C90B7B2EED7865003728A0;
+					};
+					15C90B922EED7867003728A0 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 15C90B7B2EED7865003728A0;
+					};
+				};
+			};
+			buildConfigurationList = 15C90B772EED7865003728A0 /* Build configuration list for PBXProject "UpNews-iOS" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 15C90B732EED7865003728A0;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				15C2F4132EEEF78500A1F346 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				15C4E0C42EF2A17400ED02C5 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				154CC0DE2EF5910C00A734ED /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				158F91DF2F1CE95700AD81AA /* XCRemoteSwiftPackageReference "dotlottie-ios" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 15C90B732EED7865003728A0;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				15C90B7B2EED7865003728A0 /* UpNews-iOS */,
+				15C90B882EED7867003728A0 /* UpNews-iOSTests */,
+				15C90B922EED7867003728A0 /* UpNews-iOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		15C90B7A2EED7865003728A0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15C90B872EED7867003728A0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15C90B912EED7867003728A0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		15C90B782EED7865003728A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15C90B852EED7867003728A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15C90B8F2EED7867003728A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		15C90B8B2EED7867003728A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 15C90B7B2EED7865003728A0 /* UpNews-iOS */;
+			targetProxy = 15C90B8A2EED7867003728A0 /* PBXContainerItemProxy */;
+		};
+		15C90B952EED7867003728A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 15C90B7B2EED7865003728A0 /* UpNews-iOS */;
+			targetProxy = 15C90B942EED7867003728A0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		15C90B9B2EED7867003728A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		15C90B9C2EED7867003728A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		15C90B9E2EED7867003728A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "UpNews-iOS/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = UpNews;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		15C90B9F2EED7867003728A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "UpNews-iOS/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = UpNews;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+		15C90BA12EED7867003728A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/UpNews-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/UpNews-iOS";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		15C90BA22EED7867003728A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/UpNews-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/UpNews-iOS";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+		15C90BA42EED7867003728A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOSUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = "UpNews-iOS";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		15C90BA52EED7867003728A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOSUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = "UpNews-iOS";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		15C90B772EED7865003728A0 /* Build configuration list for PBXProject "UpNews-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15C90B9B2EED7867003728A0 /* Debug */,
+				15C90B9C2EED7867003728A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		15C90B9D2EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15C90B9E2EED7867003728A0 /* Debug */,
+				15C90B9F2EED7867003728A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		15C90BA02EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15C90BA12EED7867003728A0 /* Debug */,
+				15C90BA22EED7867003728A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		15C90BA32EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15C90BA42EED7867003728A0 /* Debug */,
+				15C90BA52EED7867003728A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		154CC0DE2EF5910C00A734ED /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
+		158F91DF2F1CE95700AD81AA /* XCRemoteSwiftPackageReference "dotlottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LottieFiles/dotlottie-ios";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		15C2F4132EEEF78500A1F346 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+		15C4E0C42EF2A17400ED02C5 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1588C7562EF94F7500551A36 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15C2F4132EEEF78500A1F346 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		1588C7582EF94F8500551A36 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 154CC0DE2EF5910C00A734ED /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		1588C75A2EF94F8900551A36 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 154CC0DE2EF5910C00A734ED /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+		158F91E02F1CE95700AD81AA /* DotLottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 158F91DF2F1CE95700AD81AA /* XCRemoteSwiftPackageReference "dotlottie-ios" */;
+			productName = DotLottie;
+		};
+		15C2F4142EEEF78500A1F346 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15C2F4132EEEF78500A1F346 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		15C2F4162EEEF78500A1F346 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15C2F4132EEEF78500A1F346 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		15C4E0C52EF2A17400ED02C5 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 15C4E0C42EF2A17400ED02C5 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 15C90B742EED7865003728A0 /* Project object */;
+}

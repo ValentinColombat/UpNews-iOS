@@ -1,0 +1,32 @@
+# SECRETS
+SupabaseSecrets.swift
+GoogleSecrets.swift
+Secrets.swift
+
+# Xcode
+xcuserdata/
+*. xcuserstate
+*. xcscmblueprint
+*. xccheckout
+*.moved-aside
+*.hmap
+*. ipa
+*.dSYM. zip
+*.dSYM
+DerivedData/
+build/
+
+# macOS
+. DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift Package Manager
+.build/
+. swiftpm/
+Packages/
+Package.pins
+Package.resolved
+
+# CocoaPods
+Pods/
