@@ -13,7 +13,7 @@ struct ProfileView: View {
     @State private var totalPoints = 250
     @State private var selectedLanguage = "Français"
     @State private var notificationTime = "9:00"
-    @State private var selectedCompanionId: String = "cannelle"
+    @State private var selectedCompanionId:  String = "cannelle"
     
     // Picker pour séléction de la langue et de l'heure
     @State private var showLanguagePicker = false
@@ -39,26 +39,46 @@ struct ProfileView: View {
                 // Abonnement
                 subscriptionCard
                     .padding(.horizontal, 20)
-                    .padding(.top, 20)
+                    . padding(.top, 20)
                 
                 // Logout
-                logoutSection
-                    .padding(.top, 20)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 100)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Compte")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
+                        .padding(.horizontal, 4)
+                    
+                    logoutSection
+                }
+                .padding(.top, 20)
+                .padding(.horizontal, 20)
+                . padding(.bottom, 100)
             }
         }
         .background(Color(red: 0.98, green: 0.97, blue: 0.96))
+        .alert("Déconnexion", isPresented: $showLogoutConfirmation) {
+            Button("Annuler", role: .cancel) { }
+            Button("Se déconnecter", role: . destructive) {
+                print("🔴 Déconnexion confirmée")
+                Task {
+                    print("🔄 Appel signOut...")
+                    await authService.signOut()
+                    print("✅ SignOut terminé, isAuth = \(authService.isAuthenticated)")
+                }
+            }
+        } message: {
+            Text("Êtes-vous sûr de vouloir vous déconnecter ? ")
+        }
     }
     
     // MARK: - Profile Header
-    private var profileHeader: some View {
+    private var profileHeader:  some View {
         ZStack {
             // Dégradé de fond
             LinearGradient(
-                gradient: Gradient(colors: [
+                gradient: Gradient(colors:  [
                     Color(red: 0.48, green: 0.63, blue: 0.36),  // primaryGreen
-                    Color(red: 0.72, green: 0.84, blue: 0.63)   // lightGreen
+                    Color(red:  0.72, green: 0.84, blue: 0.63)   // lightGreen
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -86,7 +106,7 @@ struct ProfileView: View {
                     
                     Image(selectedCompanionId)
                         .resizable()
-                        .scaledToFit()
+                        . scaledToFit()
                         .frame(width: 70, height: 70)
                         .clipShape(Circle())
                 }
@@ -94,7 +114,7 @@ struct ProfileView: View {
                 // Nom
                 Text(userName)
                     .font(.system(size: 18, weight: .heavy))
-                    .foregroundColor(.white)
+                    .foregroundColor(. white)
                 
                 // Email
                 Text(userEmail)
@@ -174,26 +194,26 @@ struct ProfileView: View {
     
     // MARK: - Preferences Section
     private var preferencesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment:  .leading, spacing: 12) {
             Text("Préférences")
-                .font(.system(size: 17, weight: .bold))
+                .font(. system(size: 17, weight: .bold))
                 .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
                 .padding(.horizontal, 4)
             
             SettingsGroup {
                 SettingsRow(
-                        iconName: "globe",
-                        title: "Langue",
-                        value: "Français",
-                        action: { }
-                    )
-                    .disabled(true)
+                    iconName: "globe",
+                    title: "Langue",
+                    value: "Français",
+                    action:  { }
+                )
+                .disabled(true)
                 
                 SettingsRow(
-                    iconName: "bell.fill",
+                    iconName: "bell. fill",
                     title: "Notifications",
                     value: notificationTime,
-                    action: { showTimePicker = true }
+                    action:  { showTimePicker = true }
                 )
             }
         }
@@ -205,34 +225,34 @@ struct ProfileView: View {
     // MARK: - Logout Section
     
     private var logoutSection: some View {
-                    SettingsGroup {
-                        // Bouton déconnexion
-                        Button(action: {
-                            showLogoutConfirmation = true
-                        }) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.red)
-                                    .frame(width: 28)
-                                
-                                Text("Se déconnecter")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(. red)
-                                
-                                Spacer()
-                            }
-                            .padding()
-                            .background(Color.white)
-                        }
-                    }
+        SettingsGroup {
+            // Bouton déconnexion
+            Button(action: {
+                showLogoutConfirmation = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 18))
+                        .foregroundColor(.red)
+                        .frame(width: 28)
+                    
+                    Text("Se déconnecter")
+                        .font(.system(size: 16))
+                        .foregroundColor(.red)
+                    
+                    Spacer()
+                }
+                .padding()
+                .background(Color.white)
+            }
+        }
     }
     
     // MARK: - Subscription Card
     private var subscriptionCard: some View {
         VStack(spacing: 16) {
             LinearGradient(
-                gradient: Gradient(colors: [
+                gradient:  Gradient(colors: [
                     Color(red: 0.94, green: 0.47, blue: 0.34),  // coral
                     Color(red: 0.96, green: 0.78, blue: 0.37)   // warmYellow
                 ]),
@@ -245,7 +265,7 @@ struct ProfileView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 48))
-                        .foregroundColor(.white)
+                        .foregroundColor(. white)
                     
                     Text("ESSAI GRATUIT")
                         .font(.system(size: 14, weight: .bold))
@@ -273,8 +293,8 @@ struct StatCard: View {
     let label: String
     var iconColor: Color = Color(red: 0.48, green: 0.63, blue: 0.36)
     var valueColor: Color = Color(red: 0.48, green: 0.63, blue: 0.36)
-    var labelColor: Color = Color(red: 0.4, green: 0.4, blue: 0.4)
-    var backgroundColor: Color = .white
+    var labelColor: Color = Color(red:  0.4, green: 0.4, blue: 0.4)
+    var backgroundColor: Color = . white
     
     var body: some View {
         VStack(spacing: 8) {
@@ -287,11 +307,11 @@ struct StatCard: View {
                 .foregroundColor(valueColor)
             
             Text(label)
-                .font(.system(size: 13, weight: .semibold))
+                .font(. system(size: 13, weight: .semibold))
                 .foregroundColor(labelColor)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(. vertical, 24)
         .padding(.horizontal, 18)
         .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -369,16 +389,16 @@ struct TimePickerSheet: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         let time = formatter.date(from: selectedTime.wrappedValue) ?? Date()
-        self._pickerTime = State(initialValue: time)
+        self._pickerTime = State(initialValue:  time)
     }
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
                 Text("Choisissez l'heure de notification")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.secondary)
-                    .padding(.top, 30)
+                    .font(. system(size: 17, weight: .semibold))
+                    .foregroundColor(. secondary)
+                    .padding(. top, 30)
                 
                 DatePicker(
                     "",
