@@ -24,7 +24,7 @@ struct UpNews_iOSApp: App {
                     Task {
                         do {
                             try await SupabaseConfig.client.auth.session(from: url)
-                            AuthService.shared.checkAuthStatus()
+                            await AuthService.shared.checkAuthStatus()
                             print("Connexion Google réussie")
                         } catch {
                             print("Erreur callback Google: \(error)")

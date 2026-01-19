@@ -46,6 +46,9 @@ struct ContentView: View {
         .animation(.easeInOut, value: hasCompletedOnboarding)
         .animation(.easeInOut, value: authService.isAuthenticated)
         .animation(.easeInOut, value: hasSelectedCompanion)
+        .task {
+            await authService.checkAuthStatus()
+        }
         .onAppear {
             if authService.isAuthenticated && isCheckingCompanion {
                 Task {

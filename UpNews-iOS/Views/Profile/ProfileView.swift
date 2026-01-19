@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ProfileView: View {
+    
+    @StateObject private var authService = AuthService.shared
+    @State private var showLogoutConfirmation = false
     // Données statiques directement dans la vue
     @State private var userName = "Marie Dupont"
     @State private var userEmail = "marie.dupont@email.com"
@@ -37,6 +40,11 @@ struct ProfileView: View {
                 subscriptionCard
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
+                
+                // Logout
+                logoutSection
+                    .padding(.top, 20)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 100)
             }
         }
@@ -192,6 +200,32 @@ struct ProfileView: View {
         .sheet(isPresented: $showTimePicker) {
             TimePickerSheet(selectedTime: $notificationTime)
         }
+    }
+    
+    // MARK: - Logout Section
+    
+    private var logoutSection: some View {
+                    SettingsGroup {
+                        // Bouton déconnexion
+                        Button(action: {
+                            showLogoutConfirmation = true
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.red)
+                                    .frame(width: 28)
+                                
+                                Text("Se déconnecter")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(. red)
+                                
+                                Spacer()
+                            }
+                            .padding()
+                            .background(Color.white)
+                        }
+                    }
     }
     
     // MARK: - Subscription Card

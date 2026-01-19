@@ -30,7 +30,6 @@ class AuthService: ObservableObject {
     
     private init() {
         self.client = SupabaseConfig.client
-        // Ne pas vérifier automatiquement, laisser false par défaut
         // checkAuthStatus()
     }
     
@@ -38,118 +37,141 @@ class AuthService: ObservableObject {
     
     /// Vérifie si l'utilisateur est déjà connecté
     @MainActor
-    func checkAuthStatus() {
-        Task {
-            do {
-                let session = try await client.auth.session
-                isAuthenticated = true
-                currentUser = session.user
-            } catch {
-                isAuthenticated = false
-                currentUser = nil
-            }
+    func checkAuthStatus() async {
+        do {
+            let session = try await client.auth.session
+            isAuthenticated = true
+            currentUser = session.user
+            print(" Session restaurée :  \(session.user.email ??  "")")
+        } catch {
+            isAuthenticated = false
+            currentUser = nil
+            print(" Aucune session active")
         }
     }
     
-    /// Connexion avec email/mot de passe
+    // MARK: - Connexion
     @MainActor
-    func signIn(email: String, password: String) async {
+    func signIn(email:  String, password: String) async {
         isLoading = true
         errorMessage = nil
         
+        //  Nettoyage
+        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let cleanPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        //  Validation
+        guard !cleanEmail.isEmpty, !cleanPassword.isEmpty else {
+            errorMessage = "Email et mot de passe requis"
+            isLoading = false
+            return
+        }
+        
         do {
             let session = try await client.auth.signIn(
-                email: email,
-                password: password
+                email: cleanEmail,
+                password: cleanPassword
             )
             
             isAuthenticated = true
             currentUser = session.user
         } catch {
-            errorMessage = "Erreur de connexion : \(error.localizedDescription)"
+            let errorDesc = error.localizedDescription
+            
+            if errorDesc.contains("Invalid login credentials") {
+                errorMessage = "Email ou mot de passe incorrect.  Si tu t'es inscrit avec Google, utilise le bouton Google."
+            } else if errorDesc.contains("Email not confirmed") {
+                errorMessage = "Vérifie ton email pour confirmer ton compte."
+            } else {
+                errorMessage = "Erreur de connexion : \(errorDesc)"
+            }
+            
             isAuthenticated = false
         }
         
         isLoading = false
     }
     
-    /// Inscription avec email/mot de passe
+    // MARK: - Inscription
     @MainActor
     func signUp(email: String, password: String, username: String) async {
         isLoading = true
         errorMessage = nil
         
+        //  Nettoyage
+        let cleanEmail = email.trimmingCharacters(in:  .whitespacesAndNewlines).lowercased()
+        let cleanPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        //  Validation
+        guard !cleanEmail.isEmpty else {
+            errorMessage = "Email requis"
+            isLoading = false
+            return
+        }
+        
+        guard cleanPassword.count >= 6 else {
+            errorMessage = "Le mot de passe doit contenir au moins 6 caractères"
+            isLoading = false
+            return
+        }
+        
+        guard !cleanUsername.isEmpty, cleanUsername.count >= 2 else {
+            errorMessage = "Le nom doit contenir au moins 2 caractères"
+            isLoading = false
+            return
+        }
+        
         do {
-            // Étape 1 : Créer le compte auth
             let session = try await client.auth.signUp(
-                email: email,
-                password: password,
-                data: ["username": .string(username)]
+                email: cleanEmail,
+                password: cleanPassword,
+                data: ["name": . string(cleanUsername)]
             )
-            
-            // Étape 2 : Créer l'entrée users manuellement
-            struct NewUser: Encodable {
-                let id: String
-                let email: String
-                let display_name: String
-                let total_points: Int
-                let current_streak: Int
-            }
-            
-            let newUser = NewUser(
-                id: session.user.id.uuidString, 
-                email: email,
-                display_name: username,
-                total_points: 0,
-                current_streak: 0,
-            )
-            
-            try await client
-                .from("users")
-                .insert(newUser)
-                .execute()
             
             isAuthenticated = true
             currentUser = session.user
             
         } catch {
-            errorMessage = "Erreur d'inscription : \(error.localizedDescription)"
+            let errorDesc = error.localizedDescription
+            
+            if errorDesc.contains("already") || errorDesc.contains("exists") {
+                errorMessage = "Cet email est déjà utilisé. Essaie de te connecter avec Google."
+            } else {
+                errorMessage = "Erreur d'inscription : \(errorDesc)"
+            }
+            
             isAuthenticated = false
         }
         
         isLoading = false
     }
     
-    // MARK : - Google Sign In (Native iOS)
+    // MARK: - Google Sign In
     
-    /// Connexion native avec Google puis Supabase
-
     @MainActor
     func signInWithGoogle() async {
         isLoading = true
         errorMessage = nil
         
         do {
-            // Étape 1 : Obtenir le root view controller
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                   let rootViewController = windowScene.windows.first?.rootViewController else {
                 throw NSError(domain: "AuthService", code: -1,
-                            userInfo: [NSLocalizedDescriptionKey: "Cannot find root view controller"])
+                              userInfo:  [NSLocalizedDescriptionKey:  "Cannot find root view controller"])
             }
             
-            // Étape 2 : Sign in avec Google nativement
             let result = try await GIDSignIn.sharedInstance.signIn(
                 withPresenting: rootViewController
             )
             
             guard let idToken = result.user.idToken?.tokenString else {
                 throw NSError(domain: "AuthService", code: -2,
-                            userInfo: [NSLocalizedDescriptionKey: "No ID token from Google"])
+                              userInfo: [NSLocalizedDescriptionKey: "No ID token from Google"])
             }
             
             let accessToken = result.user.accessToken.tokenString
             
-            // Étape 3 : Authentifier avec Supabase
             try await client.auth.signInWithIdToken(
                 credentials: .init(
                     provider: .google,
@@ -158,27 +180,52 @@ class AuthService: ObservableObject {
                 )
             )
             
-            // Étape 4 : Récupérer la session
             let session = try await client.auth.session
             isAuthenticated = true
             currentUser = session.user
             
-            print("✅ Google Sign In réussi : \(session.user.email ?? "")")
+            print(" Google Sign In réussi : \(session.user.email ?? "")")
             
         } catch {
             errorMessage = "Erreur de connexion Google : \(error.localizedDescription)"
-            print("❌ Google Sign In error: \(error)")
+            print(" Google Sign In error: \(error)")
             isAuthenticated = false
         }
         
         isLoading = false
     }
     
-    /// Déconnexion
+    // MARK: - Mot de passe oublié
+    
+    @MainActor
+    func resetPassword(email: String) async {
+        isLoading = true
+        errorMessage = nil
+        
+        let cleanEmail = email.trimmingCharacters(in: . whitespacesAndNewlines).lowercased()
+        
+        do {
+            try await client.auth.resetPasswordForEmail(cleanEmail)
+            // Afficher message succès
+            errorMessage = "Email de réinitialisation envoyé"
+        } catch {
+            errorMessage = "Erreur :  \(error.localizedDescription)"
+        }
+        
+        isLoading = false
+    }
+    
+    // MARK: - Déconnexion
+    
     @MainActor
     func signOut() async {
         do {
+            // Déconnecter Supabase
             try await client.auth.signOut()
+            
+            // Déconnecter Google
+            GIDSignIn.sharedInstance.signOut()
+            
             isAuthenticated = false
             currentUser = nil
         } catch {
