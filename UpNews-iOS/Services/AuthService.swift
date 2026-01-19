@@ -94,7 +94,6 @@ class AuthService: ObservableObject {
                 let display_name: String
                 let total_points: Int
                 let current_streak: Int
-                let has_completed_onboarding: Bool
             }
             
             let newUser = NewUser(
@@ -103,7 +102,6 @@ class AuthService: ObservableObject {
                 display_name: username,
                 total_points: 0,
                 current_streak: 0,
-                has_completed_onboarding: false
             )
             
             try await client

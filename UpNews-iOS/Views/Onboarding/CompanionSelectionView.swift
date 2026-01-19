@@ -20,27 +20,26 @@ struct CompanionSelectionView: View {
     // Callback quand la sélection est terminée
     var onCompanionSelected: () -> Void
     
-
     // MARK: - Companions Data
-
+    
     let companions = [
         Companion(
             id: "givre_et_plume",
             name: "Givre & Plume",
             imageName: "givre_et_plume",
-            color: Color(red: 0.4, green: 1, blue: 0.4) // Vert
+            color: Color(red: 0.4, green: 1, blue: 0.4)
         ),
         Companion(
             id: "cannelle",
             name: "Cannelle",
             imageName: "cannelle",
-            color: Color(red: 0.4, green: 1, blue: 0.4) // Vert
+            color: Color(red: 0.4, green: 1, blue: 0.4)
         ),
         Companion(
             id: "brume",
             name: "Brume",
             imageName: "brume",
-            color: Color(red: 0.4, green: 1, blue: 0.4) // Vert
+            color: Color(red: 0.4, green: 1, blue: 0.4)
         )
     ]
     
@@ -75,15 +74,15 @@ struct CompanionSelectionView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 24)
+                    . padding(.horizontal, 24)
                 }
                 
                 Spacer()
                 
                 // Info box
                 VStack(spacing: 16) {
-                    Text("Chaque jour, des milliers d'événements positifs se produisent dans le monde. Nous les trouvons pour vous.")
-                        .font(.body)
+                    Text("Chaque jour, des milliers d'événements positifs se produisent dans le monde.  Nous les trouvons pour vous.")
+                        .font(. body)
                         .foregroundColor(.upNewsBlack)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
@@ -113,7 +112,7 @@ struct CompanionSelectionView: View {
                             .tint(.white)
                     } else {
                         Text("SUIVANT")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 16, weight:  .bold))
                             .foregroundColor(.white)
                     }
                 }
@@ -138,10 +137,17 @@ struct CompanionSelectionView: View {
             do {
                 let session = try await SupabaseConfig.client.auth.session
                 
-                // Mettre à jour le compagnon sélectionné
+                struct CompanionUpdate: Encodable {
+                    let selected_companion_id: String
+                }
+                
+                let update = CompanionUpdate(
+                    selected_companion_id: companionId,
+                )
+                
                 try await SupabaseConfig.client
                     .from("users")
-                    .update(["selected_companion_id": companionId])
+                    .update(update)
                     .eq("id", value: session.user.id.uuidString)
                     .execute()
                 
@@ -158,71 +164,66 @@ struct CompanionSelectionView: View {
             }
         }
     }
-}
-
-// MARK: - Companion Model
-
-struct Companion: Identifiable {
-    let id: String
-    let name: String
-    let imageName: String
-    let color: Color
-}
-
-// MARK: - Companion Card
-
-struct CompanionCard: View {
-    let companion: Companion
-    let isSelected: Bool
-    let onTap: () -> Void
     
-    var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: 0) {
-                // Image container avec fond gris clair
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.gray.opacity(0.15))
-                        .frame(width: 100, height: 140)
+    // MARK: - Companion Model
+    
+    struct Companion: Identifiable {
+        let id: String
+        let name: String
+        let imageName: String
+        let color: Color
+    }
+    
+    // MARK: - Companion Card
+    
+    struct CompanionCard: View {
+        let companion:  Companion
+        let isSelected:  Bool
+        let onTap:  () -> Void
+        
+        var body: some View {
+            Button(action: onTap) {
+                VStack(spacing:  0) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(width: 100, height: 140)
+                        
+                        Image(companion.imageName)
+                            .resizable()
+                            .scaledToFit()
+                            .blur(radius: 30)
+                            .opacity(1)
+                            .offset(y: -5)
+                            .offset(x: -5)
+                        
+                        Image(companion.imageName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 90, height: 130)
+                    }
                     
-                    // Ombre floue
-                    Image(companion.imageName)
-                        .resizable()
-                        .scaledToFit()
-                        .blur(radius: 30)
-                        .opacity(1)
-                        .offset(y: -5)
-                        .offset(x: -5)
+                    RoundedRectangle(cornerRadius: 4)
+                        . fill(isSelected ? companion.color : Color.gray.opacity(0.3))
+                        .frame(width: 60, height:  8)
+                        .padding(.top, 12)
                     
-                    // Image réelle
-                    Image(companion.imageName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 90, height: 130)
-                }
-                
-                // Barre de couleur sous l'image
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(isSelected ? companion.color : Color.gray.opacity(0.3))
-                    .frame(width: 60, height: 8)
-                    .padding(.top, 12)
-                
-                // Checkmark si sélectionné
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.upNewsBlack)
-                        .padding(.top, 8)
-                } else {
-                    Color.clear
-                        .frame(height: 28)
-                        .padding(.top, 8)
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.upNewsBlack)
+                            .padding(.top, 8)
+                    } else {
+                        Color.clear
+                            . frame(height: 28)
+                            .padding(.top, 8)
+                    }
                 }
             }
+            .buttonStyle(.plain)
+            .scaleEffect(isSelected ? 1.05 : 1.0)
+            .animation(.spring(response: 0.3), value: isSelected)
         }
-        .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 1.05 : 1.0)
-        .animation(.spring(response: 0.3), value: isSelected)
     }
 }
 

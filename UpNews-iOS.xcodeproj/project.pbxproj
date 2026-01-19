@@ -58,28 +58,17 @@
 			membershipExceptions = (
 				Info.plist,
 				Services/GoogleSecrets.example.swift,
-				Services/SupabaseSecrets.swift,
+				Services/SupabaseSecrets.example.swift,
 			);
 			target = 15C90B7B2EED7865003728A0 /* UpNews-iOS */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		150D514C2F1E7C630042D8A1 /* Exceptions for "UpNews-iOS" folder in "Copy Bundle Resources" phase from "UpNews-iOS" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 15C90B7A2EED7865003728A0 /* Resources */;
-			membershipExceptions = (
-				Services/SupabaseSecrets.swift,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		15C90B7E2EED7865003728A0 /* UpNews-iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				154CC0E42EF5939300A734ED /* Exceptions for "UpNews-iOS" folder in "UpNews-iOS" target */,
-				150D514C2F1E7C630042D8A1 /* Exceptions for "UpNews-iOS" folder in "Copy Bundle Resources" phase from "UpNews-iOS" target */,
 			);
 			path = "UpNews-iOS";
 			sourceTree = "<group>";

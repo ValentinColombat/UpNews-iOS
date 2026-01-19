@@ -6,10 +6,9 @@ enum SupabaseConfig {
     static let anonKey = SupabaseSecrets.anonKey
     
     static let client = SupabaseClient(
-        supabaseURL: url,
+        supabaseURL:  url,
         supabaseKey: anonKey
     )
     
-    // URL de redirection pour Google OAuth
     static let redirectURL = URL(string: "upnews://login-callback")!
 }
