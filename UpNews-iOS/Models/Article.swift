@@ -86,12 +86,12 @@ struct Article: Identifiable, Codable, Hashable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Prend les 150 premiers caractères
-        if cleaned.count <= 150 {
+        if cleaned.count <= 70 {
             return cleaned
         }
         
         // Coupe à 150 caractères en essayant de finir à un espace
-        let preview = cleaned.prefix(150)
+        let preview = cleaned.prefix(70)
         if let lastSpace = preview.lastIndex(of: " ") {
             return String(preview[..<lastSpace]) + "..."
         }
