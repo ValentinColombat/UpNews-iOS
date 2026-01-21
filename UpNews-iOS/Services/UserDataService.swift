@@ -1,5 +1,5 @@
 //
-//  UserDataService.swift
+//  UserDataService. swift
 //  UpNews-iOS
 //
 //  Created by Valentin Colombat on 20/01/2026.
@@ -8,18 +8,21 @@ import SwiftUI
 import Supabase
 import Combine
 
-
 @MainActor
-class UserDataService:  ObservableObject {
+class UserDataService: ObservableObject {
+    
+    // MARK: - Singleton
     
     static let shared = UserDataService()
+    
+    // MARK:  - Published Properties
     
     // User data
     @Published var displayName: String = ""
     @Published var currentStreak: Int = 0
     @Published var selectedCompanionId: String = ""
     @Published var currentXp: Int = 0
-    @Published var maxXp:  Int = 100
+    @Published var maxXp: Int = 100
     @Published var currentLevel:  Int = 1
     
     // Articles
@@ -27,31 +30,71 @@ class UserDataService:  ObservableObject {
     @Published var mainArticle: Article?
     @Published var secondaryArticles: [Article] = []
     
+    // MARK: - Init
+    
     private init() {}
     
-    /// Charge TOUTES les données utilisateur
-    func loadAllData() async throws {
-
+    // MARK:  - Companion Check
+    
+    /// Vérifie si l'utilisateur a sélectionné un compagnon
+    func checkCompanion() async -> Bool {
         do {
-            print("🔵 1. Mise à jour streak...")
-            let updatedStreak = try await StreakService.shared.updateStreak()
+            let session = try await SupabaseConfig.client.auth.session
             
-            print("🔵 2. Chargement articles...")
-            try await loadArticles()
-            print("✅ Articles chargés")
+            struct UserCompanion: Decodable {
+                let selected_companion_id: String?
+            }
             
-            print("🔵 3. Chargement profil utilisateur...")
-            try await loadUserData()
+            let response = try await SupabaseConfig.client
+                .from("users")
+                .select("selected_companion_id")
+                .eq("id", value: session.user.id.uuidString)
+                .execute()
             
-            currentStreak = updatedStreak
+            let users = try JSONDecoder().decode([UserCompanion].self, from: response.data)
             
+            if let companion = users.first?.selected_companion_id, !companion.isEmpty {
+                print(" Compagnon trouvé: \(companion)")
+                selectedCompanionId = companion
+                return true
+            } else {
+                print(" Pas de compagnon sélectionné")
+                return false
+            }
         } catch {
-            print(" Erreur dans loadAllData() : \(error)")
-            throw error
+            print(" Erreur vérification compagnon: \(error)")
+            return false
         }
     }
     
-    /// Charge les articles depuis Supabase
+    // MARK: - Data Loading
+    
+    /// Charge TOUTES les données utilisateur (streak, articles, profil)
+    func loadAllData() async throws {
+        print(" UserData: Début chargement données")
+        
+        // 1. Mise à jour du streak
+        print(" UserData: Mise à jour streak...")
+        let updatedStreak = try await StreakService.shared.updateStreak()
+        currentStreak = updatedStreak
+        print(" UserData: Streak = \(updatedStreak)")
+        
+        // 2. Chargement des articles
+        print(" UserData:  Chargement articles...")
+        try await loadArticles()
+        print(" UserData: Articles chargés (\(articles.count))")
+        
+        // 3. Chargement du profil
+        print(" UserData:  Chargement profil...")
+        try await loadUserProfile()
+        print(" UserData: Profil chargé:  \(displayName)")
+        
+        print(" UserData:  Toutes les données chargées")
+    }
+    
+    // MARK: - Private Methods
+    
+    /// Charge les articles du jour depuis Supabase
     private func loadArticles() async throws {
         let fetchedArticles = try await ArticleService.shared.fetchTodayArticles()
         
@@ -63,47 +106,47 @@ class UserDataService:  ObservableObject {
         }
     }
     
-    /// Charge les données utilisateur depuis Supabase
-    private func loadUserData() async throws {
+    /// Charge le profil utilisateur depuis Supabase
+    private func loadUserProfile() async throws {
         let session = try await SupabaseConfig.client.auth.session
         
         struct UserProfile: Decodable {
             let display_name: String
-            let current_streak: Int
             let selected_companion_id: String?
-            let current_xp:  Int
+            let current_xp: Int
             let max_xp: Int
             let current_level: Int
         }
         
-        // ✅ FIX :   Utiliser .execute() et décoder un tableau, puis prendre le premier
         let response = try await SupabaseConfig.client
             .from("users")
-            .select("display_name, current_streak, selected_companion_id, current_xp, max_xp, current_level")
+            .select("display_name, selected_companion_id, current_xp, max_xp, current_level")
             .eq("id", value: session.user.id.uuidString)
-            .execute()  // ✅ Au lieu de .  single()
+            .execute()
         
-        // ✅ Décoder comme un tableau
         let users = try JSONDecoder().decode([UserProfile].self, from: response.data)
         
-        // ✅ Vérifier qu'on a bien un résultat
         guard let profile = users.first else {
-            throw NSError(domain: "UserDataService", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "Profil utilisateur introuvable"])
+            throw NSError(
+                domain: "UserDataService",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Profil utilisateur introuvable"]
+            )
         }
         
-        // ✅ Mettre à jour les données
+        // Mise à jour des propriétés
         displayName = profile.display_name
-        currentStreak = profile.current_streak
-        selectedCompanionId = profile.selected_companion_id ??  ""
+        selectedCompanionId = profile.selected_companion_id ??  selectedCompanionId
         currentXp = profile.current_xp
         maxXp = profile.max_xp
         currentLevel = profile.current_level
-        
-        print("✅ Profil chargé :   \(displayName) - Compagnon:  \(selectedCompanionId)")
     }
-    /// Réinitialise les données (à la déconnexion)
+    
+    // MARK: - Reset
+    
+    /// Réinitialise toutes les données (utilisé lors de la déconnexion)
     func reset() {
+        print("🔄 UserData: Reset des données")
         displayName = ""
         currentStreak = 0
         selectedCompanionId = ""

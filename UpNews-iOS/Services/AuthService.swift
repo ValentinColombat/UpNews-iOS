@@ -9,11 +9,12 @@ import Foundation
 import Combine
 import Supabase
 import GoogleSignIn
+import UIKit
 
 /// Service pour gérer l'authentification utilisateur
-class AuthService:  ObservableObject {
+class AuthService: ObservableObject {
     
-    // MARK: - Singleton
+    // MARK:  - Singleton
     
     static let shared = AuthService()
     
@@ -24,7 +25,7 @@ class AuthService:  ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let client: SupabaseClient
+    private let client:  SupabaseClient
     
     // MARK: - Initialisation
     
@@ -41,7 +42,7 @@ class AuthService:  ObservableObject {
             let session = try await client.auth.session
             isAuthenticated = true
             currentUser = session.user
-            print(" Session restaurée :  \(session.user.email ?? "")")
+            print(" Session restaurée:  \(session.user.email ??  "")")
         } catch {
             isAuthenticated = false
             currentUser = nil
@@ -52,12 +53,12 @@ class AuthService:  ObservableObject {
     // MARK: - Connexion
     
     @MainActor
-    func signIn(email: String, password: String) async {
+    func signIn(email: String, password:  String) async {
         isLoading = true
         errorMessage = nil
         
         // Nettoyage
-        let cleanEmail = email.trimmingCharacters(in: . whitespacesAndNewlines).lowercased()
+        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let cleanPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Validation
@@ -70,12 +71,12 @@ class AuthService:  ObservableObject {
         do {
             let session = try await client.auth.signIn(
                 email: cleanEmail,
-                password:  cleanPassword
+                password: cleanPassword
             )
             
             isAuthenticated = true
             currentUser = session.user
-            print(" Connexion réussie : \(session.user.email ?? "")")
+            print(" Connexion réussie:  \(session.user.email ??  "")")
             
         } catch {
             let errorDesc = error.localizedDescription
@@ -85,11 +86,11 @@ class AuthService:  ObservableObject {
             } else if errorDesc.contains("Email not confirmed") {
                 errorMessage = "Vérifie ton email pour confirmer ton compte."
             } else {
-                errorMessage = "Erreur de connexion : \(errorDesc)"
+                errorMessage = "Erreur de connexion:  \(errorDesc)"
             }
             
             isAuthenticated = false
-            print("❌ Erreur connexion : \(errorDesc)")
+            print(" Erreur connexion: \(errorDesc)")
         }
         
         isLoading = false
@@ -127,38 +128,20 @@ class AuthService:  ObservableObject {
         }
         
         do {
-            let response = try await client.auth.signUp(
+            let session = try await client.auth.signUp(
                 email: cleanEmail,
                 password: cleanPassword,
-                data: ["name": . string(cleanUsername)]
+                data: ["display_name": . string(cleanUsername)]
             )
             
-            // Vérifier si l'email nécessite une confirmation
-            if let session = response.session {
-                // Authentification immédiate (confirmation email désactivée)
-                isAuthenticated = true
-                currentUser = session.user
-                print(" Inscription réussie - Authentifié immédiatement")
-            } else {
-                // Confirmation email requise
-                isAuthenticated = false
-                errorMessage = "Compte créé !  Vérifie ton email pour confirmer ton compte, puis connecte-toi."
-                print(" Inscription réussie - Confirmation email requise")
-            }
+            isAuthenticated = true
+            currentUser = session.user
+            print(" Inscription réussie: \(session.user.email ?? "")")
             
         } catch {
-            let errorDesc = error.localizedDescription
-            
-            if errorDesc.contains("already") || errorDesc.contains("exists") {
-                errorMessage = "Cet email est déjà utilisé. Essaie de te connecter."
-            } else if errorDesc.contains("User already registered") {
-                errorMessage = "Ce compte existe déjà. Connecte-toi ou réinitialise ton mot de passe."
-            } else {
-                errorMessage = "Erreur d'inscription : \(errorDesc)"
-            }
-            
+            errorMessage = "Erreur d'inscription: \(error.localizedDescription)"
             isAuthenticated = false
-            print(" Erreur inscription : \(errorDesc)")
+            print(" Erreur inscription: \(error)")
         }
         
         isLoading = false
@@ -173,61 +156,39 @@ class AuthService:  ObservableObject {
         
         do {
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let rootViewController = windowScene.windows.first?.rootViewController else {
-                throw NSError(domain: "AuthService", code: -1,
-                              userInfo:  [NSLocalizedDescriptionKey:  "Cannot find root view controller"])
+                          let presentingVC = windowScene.windows.first?.rootViewController else {
+                        errorMessage = "Impossible d'accéder au contrôleur de présentation"
+                        isLoading = false
+                        return
+                
             }
             
-            let result = try await GIDSignIn.sharedInstance.signIn(
-                withPresenting: rootViewController
-            )
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
             
             guard let idToken = result.user.idToken?.tokenString else {
-                throw NSError(domain: "AuthService", code: -2,
-                              userInfo: [NSLocalizedDescriptionKey: "No ID token from Google"])
+                errorMessage = "Impossible de récupérer le token Google"
+                isLoading = false
+                return
             }
             
             let accessToken = result.user.accessToken.tokenString
             
-            try await client.auth.signInWithIdToken(
-                credentials: .init(
+            let session = try await client.auth.signInWithIdToken(
+                credentials: . init(
                     provider: .google,
                     idToken: idToken,
                     accessToken: accessToken
                 )
             )
             
-            let session = try await client.auth.session
             isAuthenticated = true
             currentUser = session.user
-            
-            print(" Google Sign In réussi : \(session.user.email ?? "")")
+            print(" Connexion Google réussie:  \(session.user.email ??  "")")
             
         } catch {
-            errorMessage = "Erreur de connexion Google : \(error.localizedDescription)"
-            print(" Google Sign In error: \(error)")
+            errorMessage = "Erreur connexion Google: \(error.localizedDescription)"
             isAuthenticated = false
-        }
-        
-        isLoading = false
-    }
-    
-    // MARK: - Mot de passe oublié
-    
-    @MainActor
-    func resetPassword(email: String) async {
-        isLoading = true
-        errorMessage = nil
-        
-        let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        
-        do {
-            try await client.auth.resetPasswordForEmail(cleanEmail)
-            errorMessage = " Email de réinitialisation envoyé"
-            print(" Email de reset envoyé à : \(cleanEmail)")
-        } catch {
-            errorMessage = "Erreur : \(error.localizedDescription)"
-            print(" Erreur reset password : \(error)")
+            print(" Erreur Google: \(error)")
         }
         
         isLoading = false
@@ -238,20 +199,12 @@ class AuthService:  ObservableObject {
     @MainActor
     func signOut() async {
         do {
-            // Déconnecter Supabase
             try await client.auth.signOut()
-            
-            // Déconnecter Google
-            GIDSignIn.sharedInstance.signOut()
-            
             isAuthenticated = false
             currentUser = nil
-            
             print(" Déconnexion réussie")
-            
         } catch {
-            errorMessage = "Erreur de déconnexion : \(error.localizedDescription)"
-            print(" Erreur déconnexion : \(error)")
+            print(" Erreur déconnexion: \(error)")
         }
     }
 }
