@@ -38,26 +38,32 @@ class StreakService {
         // Récupérer les données actuelles
         struct UserStreak: Decodable {
             let current_streak: Int
-            let last_connection_date:  String?
+            let last_connection_date: String?
         }
         
         let response = try await client
             .from("users")
             .select("current_streak, last_connection_date")
             .eq("id", value: userId)
-            .single()
-            .execute()
+            .execute()  // 
         
-        let userData = try JSONDecoder().decode(UserStreak.self, from: response.data)
+        //  Décoder comme un tableau
+        let users = try JSONDecoder().decode([UserStreak].self, from: response.data)
+        
+        //  Vérifier qu'on a bien un résultat
+        guard let userData = users.first else {
+            throw NSError(domain: "StreakService", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Données utilisateur introuvables"])
+        }
         
         // Calculer la nouvelle streak
         let newStreak = calculateNewStreak(
             currentStreak: userData.current_streak,
-            lastConnectionDate:  userData.last_connection_date,
+            lastConnectionDate: userData.last_connection_date,
             today: today
         )
         
-        //  Créer une struct Encodable
+        // Créer une struct Encodable
         struct UpdateStreak: Encodable {
             let current_streak: Int
             let last_connection_date: String
@@ -70,12 +76,10 @@ class StreakService {
         
         // Mettre à jour dans Supabase
         try await client
-            . from("users")
+            .from("users")
             .update(updateData)
             .eq("id", value: userId)
             .execute()
-        
-        print("✅ Streak mis à jour : \(newStreak) jour(s)")
         return newStreak
     }
     

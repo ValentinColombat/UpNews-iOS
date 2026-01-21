@@ -1,87 +1,118 @@
-// ContentView.swift
+//
+//  ContentView.swift
+//  UpNews-iOS
 
 import SwiftUI
 import Supabase
+import Auth
 
 struct ContentView: View {
     
-    // MARK: - App Storage
-    
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    
     // MARK: - State
     
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @StateObject private var authService = AuthService.shared
-    @State private var hasSelectedCompanion = false
-    @State private var isCheckingCompanion = true
+    @ObservedObject private var userDataService = UserDataService.shared
+    
+    @State private var isLoading = true
+    @State private var needsCompanionSelection = false
+    @State private var hasInitialized = false
     
     // MARK: - Body
     
     var body: some View {
-        let _ = print("🔍 hasOnboarding: \(hasCompletedOnboarding), isAuth: \(authService.isAuthenticated), hasCompanion: \(hasSelectedCompanion)")
-        
-        return Group {
+        Group {
             if !hasCompletedOnboarding {
-                // 1. Onboarding (première ouverture)
+                // Cas 1 : Première ouverture → Onboarding
                 OnboardingView {
                     hasCompletedOnboarding = true
                 }
+            } else if isLoading {
+                // Cas 2 : Chargement en cours
+                LoadingView(message: "")
             } else if !authService.isAuthenticated {
-                // 2. Authentification (après onboarding)
+                // Cas 3 :  Pas connecté → AuthView
                 AuthView()
-            } else if isCheckingCompanion {
-                // 3. Vérification du compagnon en cours
-                ProgressView("Chargement...")
-                    .tint(.upNewsPrimary)
-            } else if !hasSelectedCompanion {
-                // 4. Sélection du compagnon (première connexion)
+            } else if needsCompanionSelection {
+                // Cas 4 :  Premier compagnon à sélectionner
                 CompanionSelectionView {
-                    hasSelectedCompanion = true
+                    needsCompanionSelection = false
+                    // Recharger après sélection
+                    Task {
+                        isLoading = true
+                        await loadUserData()
+                        isLoading = false
+                    }
                 }
             } else {
-                // 5. App principale (tout est OK)
+                // Cas 5 : App principale
                 MainTabView()
+                    .environmentObject(userDataService)
             }
         }
-        .animation(.easeInOut, value: hasCompletedOnboarding)
-        .animation(.easeInOut, value: authService.isAuthenticated)
-        .animation(.easeInOut, value: hasSelectedCompanion)
         .task {
-            await authService.checkAuthStatus()
+            await initialize()
+            hasInitialized = true
         }
-        .onAppear {
-            if authService.isAuthenticated && isCheckingCompanion {
+        .onChange(of: authService.isAuthenticated) { oldValue, isAuth in
+            if !isAuth {
+                // Déconnexion
+                userDataService.reset()
+                needsCompanionSelection = false
+                isLoading = false
+            } else if oldValue == false && isAuth == true {
+                //  Connexion réussie (Email OU Google)
                 Task {
-                    await checkCompanionSelection()
+                    isLoading = true
+                    
+                    //  Petit délai UNIQUEMENT pour Google OAuth
+                    try? await Task.sleep(nanoseconds: 200_000_000)  // 0.2s
+                    
+                    await initialize()  //  Relance pour charger les données
                 }
-            }
-        }
-        .onChange(of: authService.isAuthenticated) { _, isAuth in
-            if isAuth {
-                // Petit délai pour laisser l'auth se stabiliser
-                Task {
-                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconde
-                    await checkCompanionSelection()
-                }
-            } else {
-                // Reset si déconnexion
-                hasSelectedCompanion = false
-                isCheckingCompanion = true
             }
         }
     }
     
-    // MARK: - Functions
+    // MARK: - Initialization
     
-    private func checkCompanionSelection() async {
-        await MainActor.run {
-            isCheckingCompanion = true
+    private func initialize() async {
+        guard hasCompletedOnboarding else {
+            isLoading = false
+            return
         }
         
+        isLoading = true
+        
+        // 1. Vérifier l'authentification
+        await authService.checkAuthStatus()
+        
+        guard authService.isAuthenticated else {
+            isLoading = false
+            return
+        }
+        
+        // 2. Vérifier si l'utilisateur a un compagnon
+        let hasCompanion = await checkCompanion()
+        
+        if !hasCompanion {
+            // Première connexion → sélection obligatoire
+            needsCompanionSelection = true
+            isLoading = false
+            return
+        }
+        
+        // 3. Charger les données
+        await loadUserData()
+        
+        isLoading = false
+    }
+    
+    /// Retourne true si l'utilisateur a un compagnon, false sinon
+    private func checkCompanion() async -> Bool {
         do {
             let session = try await SupabaseConfig.client.auth.session
             
-            // Vérifier si l'utilisateur a un compagnon
             struct UserCompanion: Decodable {
                 let selected_companion_id: String?
             }
@@ -92,32 +123,27 @@ struct ContentView: View {
                 .eq("id", value: session.user.id.uuidString)
                 .execute()
             
-            // Décoder manuellement
             let users = try JSONDecoder().decode([UserCompanion].self, from: response.data)
             
-            await MainActor.run {
-                if let user = users.first {
-                    hasSelectedCompanion = user.selected_companion_id != nil && !(user.selected_companion_id?.isEmpty ?? true)
-                } else {
-                    // Aucun utilisateur trouvé, forcer la sélection
-                    hasSelectedCompanion = false
-                }
-                isCheckingCompanion = false
+            if let companion = users.first?.selected_companion_id, !companion.isEmpty {
+                print(" Compagnon trouvé : \(companion)")
+                return true
+            } else {
+                print(" Pas de compagnon → sélection nécessaire")
+                return false
             }
-            
-            print("✅ Compagnon check: \(users.first?.selected_companion_id ?? "nil")")
-            
         } catch {
-            print("❌ Erreur vérification compagnon: \(error)")
-            await MainActor.run {
-                // En cas d'erreur, on force la sélection pour être sûr
-                hasSelectedCompanion = false
-                isCheckingCompanion = false
-            }
+            print(" Erreur vérification compagnon : \(error)")
+            return false
         }
     }
-}
-
-#Preview {
-    ContentView()
+    
+    private func loadUserData() async {
+        do {
+            try await userDataService.loadAllData()
+            print("✅ Données chargées dans ContentView")
+        } catch {
+            print("❌ Erreur chargement :  \(error)")
+        }
+    }
 }

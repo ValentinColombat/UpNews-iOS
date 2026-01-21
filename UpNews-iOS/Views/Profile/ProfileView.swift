@@ -210,7 +210,7 @@ struct ProfileView: View {
                 .disabled(true)
                 
                 SettingsRow(
-                    iconName: "bell. fill",
+                    iconName: "bell.fill",
                     title: "Notifications",
                     value: notificationTime,
                     action:  { showTimePicker = true }
