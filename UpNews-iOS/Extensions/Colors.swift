@@ -40,11 +40,11 @@ extension Color {
     
     // MARK: - Couleurs par catégorie
     
-    static let categoryEcology = upNewsGreen
-    static let categoryTech = upNewsBlack
-    static let categorySocial = upNewsOrange
+    static let categoryEcology = upNewsLightGreen
+    static let categoryTech = upNewsBlueLight
+    static let categorySocial = upNewsYellow
     static let categoryCulture = upNewsLightPurple
     static let categoryScience = upNewsBlueMid
-    static let categoryHealth = UpNewsRed
+    static let categoryHealth = upNewsLightPink
     static let categoryDefault = Color(red: 44/255, green: 62/255, blue: 53/255) // 2C3E35 - Gris foncé
 }

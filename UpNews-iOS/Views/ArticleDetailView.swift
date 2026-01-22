@@ -119,9 +119,9 @@ struct ArticleDetailView: View {
                 dismiss()
             } label: {
                 Text("<")
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)
-                    .shadow(radius:5 , x:1, y:1)
+                    .shadow(radius:3 , x:2, y:2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 40)
@@ -131,14 +131,7 @@ struct ArticleDetailView: View {
     
     private var headerSection: some View {
         HStack {
-            // Catégorie
-            Label(article.category, systemImage: categoryIcon(for: article.category))
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.upNewsGreen)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.upNewsGreen.opacity(0.1))
-                .cornerRadius(12)
+            CategoryTagView(article: article)
             
             Spacer()
             

@@ -178,7 +178,7 @@ struct HomeFeedView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Color.upNewsBackground)
+            .background(article.categoryColor.opacity(0.6))
             .foregroundColor(.black)
             .cornerRadius(8)
             
@@ -258,10 +258,10 @@ struct HomeFeedView: View {
             VStack {
                 Image(systemName: article.categoryIcon)
                     .font(. caption)
-                    .foregroundColor(article.categoryColor)
+                    .foregroundColor(.black)
             }
             . frame(width: 40, height: 40)
-            .background(article.categoryColor.opacity(0.1))
+            .background(article.categoryColor.opacity(0.6))
             .cornerRadius(8)
             
             VStack(alignment: .leading, spacing: 4) {
