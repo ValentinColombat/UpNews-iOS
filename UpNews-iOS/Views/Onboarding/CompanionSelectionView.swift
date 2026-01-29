@@ -36,9 +36,9 @@ struct CompanionSelectionView: View {
             color: Color(red: 0.4, green: 1, blue: 0.4)
         ),
         Companion(
-            id: "brume",
-            name: "Brume",
-            imageName: "brume",
+            id: "mousse",
+            name: "Mousse",
+            imageName: "mousse",
             color: Color(red: 0.4, green: 1, blue: 0.4)
         )
     ]

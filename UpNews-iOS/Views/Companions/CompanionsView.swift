@@ -3,6 +3,7 @@
 //  UpNews-iOS
 
 import SwiftUI
+import Supabase
 
 // MARK: - Companion Model
 
@@ -20,24 +21,32 @@ struct CompanionsView: View {
     
     // MARK: - State
     
-    @State private var currentLevel: Int = 5
-    @State private var currentXP: Int = 500
-    @State private var xpToNextLevel: Int = 1000
-    @State private var selectedCompanionId: String = "givre_et_plume"
+    @State private var selectedCompanionId: String = ""
+    @State private var isLoading = true
     
+    // Ordre des compagnons selon le nouveau système de déblocage
     @State private var companions: [CompanionCharacter] = [
-        CompanionCharacter(id: "brume", name: "Brume", imageName: "brume", emoji: nil, unlockLevel: 0, isUnlocked: true, isEquipped: true),
-        CompanionCharacter(id: "caramel", name: "Caramel", imageName: "caramel", emoji: nil, unlockLevel: 0, isUnlocked: true, isEquipped: false),
-        CompanionCharacter(id: "ecorce", name: "Écorce", imageName: "ecorce", emoji: nil, unlockLevel: 0, isUnlocked: true, isEquipped: false),
-        CompanionCharacter(id: "flocon", name: "Flocon", imageName: "flocon", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "givre_et_plume", name: "Givre et Plume", imageName: "givre_et_plume", emoji: nil, unlockLevel: 15, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "cannelle", name: "Cannelle", imageName: "cannelle", emoji: nil, unlockLevel: 20, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "luciole", name: "Luciole", imageName: "luciole", emoji: nil, unlockLevel: 30, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "mochi", name: "Mochi", imageName: "mochi", emoji: nil, unlockLevel: 40, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "mousse", name: "Mousse", imageName: "mousse", emoji: nil, unlockLevel: 50, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "noisette", name: "Noisette", imageName: "noisette", emoji: nil, unlockLevel: 60, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "pepite", name: "Pépite", imageName: "pepite", emoji: nil, unlockLevel: 70, isUnlocked: false, isEquipped: false),
-        CompanionCharacter(id: "seve", name: "Sève", imageName: "seve", emoji: nil, unlockLevel: 80, isUnlocked: false, isEquipped: false)
+        // Niveau 1 (Débloqués automatiquement - Onboarding)
+        CompanionCharacter(id: "mousse", name: "Mousse", imageName: "mousse", emoji: nil, unlockLevel: 1, isUnlocked: true, isEquipped: false),
+        CompanionCharacter(id: "cannelle", name: "Cannelle", imageName: "cannelle", emoji: nil, unlockLevel: 1, isUnlocked: true, isEquipped: false),
+        CompanionCharacter(id: "givre_et_plume", name: "Givre et Plume", imageName: "givre_et_plume", emoji: nil, unlockLevel: 1, isUnlocked: true, isEquipped: false),
+        
+        // Niveau 2 (Premier palier)
+        CompanionCharacter(id: "brume", name: "Brume", imageName: "brume", emoji: nil, unlockLevel: 2, isUnlocked: false, isEquipped: false),
+        CompanionCharacter(id: "flocon", name: "Flocon", imageName: "flocon", emoji: nil, unlockLevel: 2, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 10 (Palier intermédiaire)
+        CompanionCharacter(id: "caramel", name: "Caramel", imageName: "caramel", emoji: nil, unlockLevel: 5, isUnlocked: false, isEquipped: false),
+        CompanionCharacter(id: "ecorce", name: "Écorce", imageName: "ecorce", emoji: nil, unlockLevel: 5, isUnlocked: false, isEquipped: false),
+        CompanionCharacter(id: "luciole", name: "Luciole", imageName: "luciole", emoji: nil, unlockLevel: 5, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 15 (Avant-dernier palier)
+        CompanionCharacter(id: "mochi", name: "Mochi", imageName: "mochi", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
+        CompanionCharacter(id: "seve", name: "Sève", imageName: "seve", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 15-20 (Palier finaux actuel)
+        CompanionCharacter(id: "pepite", name: "Pépite", imageName: "pepite", emoji: nil, unlockLevel: 15, isUnlocked: false, isEquipped: false),
+        CompanionCharacter(id: "noisette", name: "Noisette", imageName: "noisette", emoji: nil, unlockLevel: 20, isUnlocked: false, isEquipped: false)
     ]
     
     // MARK: - Body
@@ -47,24 +56,31 @@ struct CompanionsView: View {
             ZStack {
                 Color.upNewsBackground
                     .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Header avec niveau
-                        headerSection
-                        
-                
-                        // Barre de progression animée
-                        xpProgressSection
-                        
-                        // Liste des compagnons
-                        companionsSection
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 100)
+                if isLoading {
+                    LoadingView()
                 }
+                
+                    else {
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                // Header avec niveau
+                                headerSection
+                                
+                                // Barre de progression animée
+                                xpProgressSection
+                                
+                                // Liste des compagnons
+                                companionsSection
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 100)
+                        }
+                    }
             }
             .navigationBarHidden(true)
+            .task {
+                await loadUserData()
+            }
         }
     }
     
@@ -72,7 +88,7 @@ struct CompanionsView: View {
     
     private var headerSection: some View {
         HStack {
-            Text(" Compagnons")
+            Text("Compagnons")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.white)
             
@@ -82,7 +98,7 @@ struct CompanionsView: View {
             HStack(spacing: 4) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 12))
-                Text("Niv. \(currentLevel)")
+                Text("Niv. \(UserDataService.shared.currentLevel)")
                     .font(.system(size: 14, weight: .bold))
             }
             .foregroundColor(.white)
@@ -109,19 +125,22 @@ struct CompanionsView: View {
     private var xpProgressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Progression vers niveau \(currentLevel + 1)")
+                Text("Progression vers niveau \(UserDataService.shared.currentLevel + 1)")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.upNewsBlack)
                 
                 Spacer()
                 
-                Text("\(currentXP) / \(xpToNextLevel) XP")
+                Text("\(UserDataService.shared.currentXp) / \(UserDataService.shared.maxXp) XP")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.upNewsBlack)
             }
             
             // Barre de progression animée
-            ProgressBar(progress: CGFloat(currentXP) / CGFloat(xpToNextLevel), orientation: .horizontal)
+            ProgressBar(
+                progress: CGFloat(UserDataService.shared.currentXp) / CGFloat(UserDataService.shared.maxXp),
+                orientation: .horizontal
+            )
         }
         .padding(20)
         .background(Color.white.opacity(0.5))
@@ -210,11 +229,71 @@ struct CompanionsView: View {
                     .padding(6)
             }
         }
+        .overlay(alignment: .topLeading) {
+            
+                //Badge NOUVEAU pour compagnons récemment débloqués
+                if companion.isUnlocked && companion.unlockLevel == UserDataService.shared.currentLevel {
+                    Text("NOUVEAU")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.upNewsOrange)
+                        .cornerRadius(8)
+                        .padding(8)
+                }
+            }
         .cornerRadius(20)
         .onTapGesture {
             if companion.isUnlocked && !companion.isEquipped {
                 equipCompanion(companion)
             }
+        }
+    }
+    
+    // MARK: - Data Loading
+    
+    private func loadUserData() async {
+        do {
+            try await UserDataService.shared.loadAllData()
+            
+            // Récupérer le compagnon sélectionné depuis le service
+            selectedCompanionId = UserDataService.shared.selectedCompanionId
+            updateUnlockedCompanions()
+            updateEquippedCompanion()
+            isLoading = false
+        } catch {
+            print("❌ Erreur chargement données: \(error)")
+        }
+    }
+    
+    private func updateUnlockedCompanions() {
+        let currentLevel = UserDataService.shared.currentLevel
+        
+        companions = companions.map { companion in
+            CompanionCharacter(
+                id: companion.id,
+                name: companion.name,
+                imageName: companion.imageName,
+                emoji: companion.emoji,
+                unlockLevel: companion.unlockLevel,
+                isUnlocked: currentLevel >= companion.unlockLevel,
+                isEquipped: companion.isEquipped
+            )
+        }
+    }
+    
+    private func updateEquippedCompanion() {
+        companions = companions.map { companion in
+            CompanionCharacter(
+                id: companion.id,
+                name: companion.name,
+                imageName: companion.imageName,
+                emoji: companion.emoji,
+                unlockLevel: companion.unlockLevel,
+                isUnlocked: companion.isUnlocked,
+                isEquipped: companion.id == selectedCompanionId
+            )
         }
     }
     
@@ -246,9 +325,41 @@ struct CompanionsView: View {
                 isEquipped: true
             )
             selectedCompanionId = companion.id
+            
+            // Sauvegarder dans Supabase et mettre à jour le service
+            Task {
+                await saveSelectedCompanion(companionId: companion.id)
+            }
+        }
+    }
+    
+    private func saveSelectedCompanion(companionId: String) async {
+        do {
+            let session = try await SupabaseConfig.client.auth.session
+            
+            struct CompanionUpdate: Encodable {
+                let selected_companion_id: String
+            }
+            
+            let update = CompanionUpdate(selected_companion_id: companionId)
+            
+            try await SupabaseConfig.client
+                .from("users")
+                .update(update)
+                .eq("id", value: session.user.id.uuidString)
+                .execute()
+            
+            // Mettre à jour le UserDataService pour synchroniser partout
+            UserDataService.shared.selectedCompanionId = companionId
+            
+            print("✅ Compagnon sauvegardé: \(companionId)")
+        } catch {
+            print("❌ Erreur sauvegarde compagnon: \(error)")
         }
     }
 }
+
+
 // MARK: - Preview
 
 #Preview {

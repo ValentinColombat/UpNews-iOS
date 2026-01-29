@@ -41,12 +41,12 @@ class AppStateService:  ObservableObject {
     
     /// Point d'entrée unique pour initialiser l'app
     func initialize(hasCompletedOnboarding: Bool) async {
-        print(" AppState:  initialize()")
+        
         currentScreen = .loading
         
         // 1. Onboarding non terminé
         guard hasCompletedOnboarding else {
-            print(" AppState: Onboarding non terminé")
+            
             currentScreen = .onboarding
             return
         }
@@ -55,7 +55,7 @@ class AppStateService:  ObservableObject {
         await authService.checkAuthStatus()
         
         guard authService.isAuthenticated else {
-            print(" AppState: Non authentifié")
+           
             currentScreen = .auth
             return
         }
@@ -64,7 +64,7 @@ class AppStateService:  ObservableObject {
         let hasCompanion = await userDataService.checkCompanion()
         
         guard hasCompanion else {
-            print(" AppState: Pas de compagnon")
+            
             currentScreen = . companionSelection
             return
         }
@@ -72,7 +72,7 @@ class AppStateService:  ObservableObject {
         // 4. Charger données
         do {
             try await userDataService.loadAllData()
-            print(" AppState: Données chargées, navigation vers main")
+            
             currentScreen = .main
         } catch {
             print(" AppState:  Erreur chargement données:  \(error)")
@@ -82,7 +82,7 @@ class AppStateService:  ObservableObject {
     
     /// Appelé après connexion (Email ou Google)
     func handleAuthentication() async {
-        print(" AppState: handleAuthentication()")
+        
         
         // Petit délai pour stabiliser la session (surtout pour Google OAuth)
         try?  await Task.sleep(nanoseconds: 300_000_000) // 0.3s
@@ -92,12 +92,12 @@ class AppStateService:  ObservableObject {
     
     /// Appelé après sélection du compagnon
     func handleCompanionSelected() async {
-        print(" AppState: handleCompanionSelected()")
+        
         currentScreen = .loading
         
         do {
             try await userDataService.loadAllData()
-            print(" AppState: Données chargées après sélection compagnon")
+            
             currentScreen = .main
         } catch {
             print(" AppState: Erreur chargement après compagnon: \(error)")
@@ -107,7 +107,7 @@ class AppStateService:  ObservableObject {
     
     /// Appelé lors de la déconnexion
     func handleSignOut() {
-        print(" AppState: handleSignOut()")
+        
         userDataService.reset()
         currentScreen = .auth
     }

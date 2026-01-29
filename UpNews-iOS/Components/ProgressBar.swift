@@ -20,15 +20,15 @@ struct ProgressBar: View {
     @State private var currentProgress: CGFloat = 0
     @State private var particles: [Particle] = []
     
-    var body:  some View {
+    var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: orientation == .horizontal ?  .leading : .bottom) {
+            ZStack(alignment: orientation == .horizontal ? .leading : .bottom) {
                 // Background
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.15))
                 
                 // Progress bar avec particules
-                ZStack(alignment: orientation == .horizontal ? . leading : .bottom) {
+                ZStack(alignment: orientation == .horizontal ? .leading : .bottom) {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(
                             LinearGradient(
@@ -38,13 +38,20 @@ struct ProgressBar: View {
                                     Color.upNewsOrange.opacity(0.8),
                                     Color.upNewsOrange
                                 ],
-                                startPoint: orientation == .horizontal ?  .leading : .bottom,
+                                startPoint: orientation == .horizontal ? .leading : .bottom,
                                 endPoint: orientation == .horizontal ? .trailing : .top
                             )
                         )
                     
-                    // Particules
-                    ForEach(particles) { particle in
+                    // Particules (seulement dans la zone remplie)
+                    ForEach(particles.filter { particle in
+                        // Filtrer les particules pour qu'elles restent dans la barre
+                        if orientation == .horizontal {
+                            return particle.x >= 0 && particle.x <= (geometry.size.width * currentProgress)
+                        } else {
+                            return particle.x >= 0 && particle.x <= (geometry.size.height * currentProgress)
+                        }
+                    }) { particle in
                         Circle()
                             .fill(Color.white)
                             .frame(width: particle.size, height: particle.size)
@@ -61,7 +68,7 @@ struct ProgressBar: View {
                     height: orientation == .horizontal ? geometry.size.height : geometry.size.height * currentProgress
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                .shadow(color: Color.upNewsOrange.opacity(0.8), radius: 4, x: 0, y:  0)
+                .shadow(color: Color.upNewsOrange.opacity(0.8), radius: 4, x: 0, y: 0)
             }
             .onAppear {
                 // Animation initiale
@@ -74,7 +81,6 @@ struct ProgressBar: View {
                     generateParticles(size: orientation == .horizontal ? geometry.size.width : geometry.size.height)
                 }
             }
-            // ✅ NOUVEAU :  Détecter les changements de progress
             .onChange(of: progress) { oldValue, newValue in
                 withAnimation(.spring(response: 3.0, dampingFraction: 0.8)) {
                     currentProgress = newValue
@@ -91,36 +97,53 @@ struct ProgressBar: View {
         }
         .frame(
             width: orientation == .horizontal ? nil : 12,
-            height: orientation == . horizontal ? 12 : nil
+            height: orientation == .horizontal ? 12 : nil
         )
     }
     
     private func generateParticles(size: CGFloat) {
-        guard progress > 0 else { return }  // ✅ Ne génère pas de particules si vide
+        let particleCount = Int(size / 30)
         
-        for _ in 0..<8 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...2.0)) {
-                particles.append(Particle(
-                    x: CGFloat.random(in: 0...20),
-                    y: CGFloat.random(in: -3...3),
-                    size: CGFloat.random(in: 3...5),
-                    opacity: 0.6
-                ))
-                animateParticle(at: particles.count - 1, maxSize:  size * progress)
-            }
+        for _ in 0..<particleCount {
+            let startPosition = CGFloat.random(in: 0...(size * currentProgress * 0.1)) // Apparaissent entre 0-10%
+            let crossPosition = CGFloat.random(in: -3...3)
+            
+            let particle = Particle(
+                x: startPosition,
+                y: crossPosition,
+                size: CGFloat.random(in: 2...4),
+                opacity: Double.random(in: 0.3...0.7)
+            )
+            
+            particles.append(particle)
+            
+            // Animation de la particule
+            animateParticle(at: particles.count - 1, maxSize: size)
         }
     }
-    
+
     private func animateParticle(at index: Int, maxSize: CGFloat) {
         guard index < particles.count else { return }
         
-        let target = maxSize * 0.85
+        // Position de fin (90% de la barre pour disparaître avant la fin)
+        let endPosition = maxSize * currentProgress * 0.90
+        let duration = Double.random(in: 2.5...4.5)
         
         withAnimation(
-            .linear(duration: Double.random(in:6.0...10.0))
-            .repeatForever(autoreverses: false)
+            .linear(duration: duration)
         ) {
-            particles[index].x = target
+            particles[index].x = endPosition
+            // Faire disparaître progressivement
+            particles[index].opacity = 0
+        }
+        
+        // Réinitialiser la particule au début après l'animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            if index < particles.count {
+                particles[index].x = CGFloat.random(in: 0...(maxSize * currentProgress * 0.1))
+                particles[index].opacity = Double.random(in: 0.3...0.7)
+                animateParticle(at: index, maxSize: maxSize) // Relancer
+            }
         }
     }
 }
@@ -156,9 +179,10 @@ struct Particle: Identifiable {
 
 #Preview("Horizontal 65%") {
     ZStack {
-        Color.black.opacity(0.8)
+        Color.upNewsBackground
         ProgressBar(progress: 0.65, orientation: .horizontal)
             .frame(height: 12)
-            .padding()
+            .padding(.horizontal, 20)
     }
+    .frame(height: 100)
 }

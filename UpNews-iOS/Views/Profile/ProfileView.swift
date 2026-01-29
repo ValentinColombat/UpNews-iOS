@@ -1,84 +1,95 @@
 import SwiftUI
+import Supabase
+import Auth
 
 struct ProfileView: View {
     
     @StateObject private var authService = AuthService.shared
+    @ObservedObject private var userDataService = UserDataService.shared
     @State private var showLogoutConfirmation = false
-    // Données statiques directement dans la vue
-    @State private var userName = "Marie Dupont"
-    @State private var userEmail = "marie.dupont@email.com"
-    @State private var articlesRead = 42
-    @State private var currentStreak = 7
-    @State private var unlockedZones = 3
-    @State private var totalPoints = 250
+    
+    // Uniquement les données locales à la vue
+    @State private var userEmail = ""
+    
+    // Préférences
     @State private var selectedLanguage = "Français"
     @State private var notificationTime = "9:00"
-    @State private var selectedCompanionId:  String = "cannelle"
-    
-    // Picker pour séléction de la langue et de l'heure
     @State private var showLanguagePicker = false
     @State private var showTimePicker = false
     
+    // Chargement
+    @State private var isLoading = true
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Header avec dégradé
-                profileHeader
-                    .padding(.top, 0)
-                
-                // Statistiques
-                statsGrid
-                    .padding(.top, 20)
-                    .padding(.horizontal, 20)
-                
-                // Préférences
-                preferencesSection
-                    .padding(.top, 20)
-                    .padding(.horizontal, 20)
-                
-                // Abonnement
-                subscriptionCard
-                    .padding(.horizontal, 20)
-                    . padding(.top, 20)
-                
-                // Logout
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Compte")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
-                        .padding(.horizontal, 4)
-                    
-                    logoutSection
+        ZStack {
+            if isLoading {
+                LoadingView()
+                      
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header avec dégradé
+                        profileHeader
+                            .padding(.top, 0)
+                        
+                        // Statistiques
+                        statsGrid
+                            .padding(.top, 20)
+                            .padding(.horizontal, 20)
+                        
+                        // Préférences
+                        preferencesSection
+                            .padding(.top, 20)
+                            .padding(.horizontal, 20)
+                        
+                        // Abonnement
+                        subscriptionCard
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                        
+                        // Logout
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Compte")
+                                .font(.system(size: 17, weight: .bold))
+                                .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
+                                .padding(.horizontal, 4)
+                            
+                            logoutSection
+                        }
+                        .padding(.top, 20)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 100)
+                    }
                 }
-                .padding(.top, 20)
-                .padding(.horizontal, 20)
-                . padding(.bottom, 100)
+                .background(Color(red: 0.98, green: 0.97, blue: 0.96))
             }
         }
-        .background(Color(red: 0.98, green: 0.97, blue: 0.96))
+        .task {
+            await loadProfileData()
+        }
+        .refreshable {
+            await loadProfileData()
+        }
         .alert("Déconnexion", isPresented: $showLogoutConfirmation) {
             Button("Annuler", role: .cancel) { }
-            Button("Se déconnecter", role: . destructive) {
-                print("🔴 Déconnexion confirmée")
+            Button("Se déconnecter", role: .destructive) {
                 Task {
-                    print("🔄 Appel signOut...")
                     await authService.signOut()
-                    print("✅ SignOut terminé, isAuth = \(authService.isAuthenticated)")
                 }
             }
         } message: {
-            Text("Êtes-vous sûr de vouloir vous déconnecter ? ")
+            Text("Êtes-vous sûr de vouloir vous déconnecter ?")
         }
     }
     
     // MARK: - Profile Header
-    private var profileHeader:  some View {
+    private var profileHeader: some View {
         ZStack {
             // Dégradé de fond
             LinearGradient(
-                gradient: Gradient(colors:  [
-                    Color(red: 0.48, green: 0.63, blue: 0.36),  // primaryGreen
-                    Color(red:  0.72, green: 0.84, blue: 0.63)   // lightGreen
+                gradient: Gradient(colors: [
+                    Color(red: 0.48, green: 0.63, blue: 0.36),
+                    Color(red: 0.72, green: 0.84, blue: 0.63)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -89,14 +100,14 @@ struct ProfileView: View {
             
             // Contenu
             VStack(spacing: 12) {
-                // Avatar avec compagnon
+                // Avatar avec compagnon - UTILISE userDataService
                 ZStack {
                     Circle()
                         .fill(Color.white)
                         .frame(width: 85, height: 85)
                         .shadow(color: Color.black.opacity(0.2), radius: 12, y: 4)
                     
-                    Image(selectedCompanionId)
+                    Image(userDataService.selectedCompanionId)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 80, height: 80)
@@ -104,17 +115,17 @@ struct ProfileView: View {
                         .blur(radius: 8)
                         .opacity(0.5)
                     
-                    Image(selectedCompanionId)
+                    Image(userDataService.selectedCompanionId)
                         .resizable()
-                        . scaledToFit()
+                        .scaledToFit()
                         .frame(width: 70, height: 70)
                         .clipShape(Circle())
                 }
                 
                 // Nom
-                Text(userName)
+                Text(userDataService.displayName)
                     .font(.system(size: 18, weight: .heavy))
-                    .foregroundColor(. white)
+                    .foregroundColor(.white)
                 
                 // Email
                 Text(userEmail)
@@ -130,7 +141,6 @@ struct ProfileView: View {
     
     private var decorativeElements: some View {
         ZStack {
-            // Cercles décoratifs
             Circle()
                 .fill(Color.white.opacity(0.1))
                 .frame(width: 150, height: 150)
@@ -154,38 +164,38 @@ struct ProfileView: View {
             GridItem(.flexible()),
             GridItem(.flexible())
         ], spacing: 14) {
-            // Carte Articles
+            // Articles aujourd'hui
             StatCard(
                 iconName: "text.book.closed",
-                value: "\(articlesRead)",
-                label: "Articles lus",
+                value: "\(userDataService.articlesReadToday)",
+                label: "Aujourd'hui",
                 iconColor: Color.upNewsGreen.opacity(0.6),
                 valueColor: Color.upNewsGreen.opacity(0.6)
             )
             
-            // Carte Streak
+            // Streak
             StatCard(
                 iconName: "flame",
-                value: "\(currentStreak)",
-                label: "Jours de suite",
+                value: "\(userDataService.currentStreak)",
+                label: "Série",
                 iconColor: Color.upNewsOrange.opacity(0.6),
                 valueColor: Color.upNewsOrange.opacity(0.6)
             )
             
-            // Carte Mois
+            // Articles ce mois
             StatCard(
-                iconName:"apple.books.pages",
-                value: "\(unlockedZones)",
-                label: "Articles lus ce mois-ci",
+                iconName: "apple.books.pages",
+                value: "\(userDataService.articlesReadThisMonth)",
+                label: "Ce mois-ci",
                 iconColor: Color.upNewsLightPurple,
                 valueColor: Color.upNewsLightPurple
             )
             
-            // Carte Points
+            // XP
             StatCard(
-                iconName: "star",
-                value: "\(totalPoints)",
-                label: "Points acquis",
+                iconName: "star.fill",
+                value: "\(userDataService.maxXp-userDataService.currentXp)",
+                label: "Points restants",
                 iconColor: Color.upNewsBlueMid,
                 valueColor: Color.upNewsBlueMid
             )
@@ -194,9 +204,9 @@ struct ProfileView: View {
     
     // MARK: - Preferences Section
     private var preferencesSection: some View {
-        VStack(alignment:  .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Préférences")
-                .font(. system(size: 17, weight: .bold))
+                .font(.system(size: 17, weight: .bold))
                 .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
                 .padding(.horizontal, 4)
             
@@ -205,7 +215,7 @@ struct ProfileView: View {
                     iconName: "globe",
                     title: "Langue",
                     value: "Français",
-                    action:  { }
+                    action: { }
                 )
                 .disabled(true)
                 
@@ -213,7 +223,7 @@ struct ProfileView: View {
                     iconName: "bell.fill",
                     title: "Notifications",
                     value: notificationTime,
-                    action:  { showTimePicker = true }
+                    action: { showTimePicker = true }
                 )
             }
         }
@@ -223,10 +233,8 @@ struct ProfileView: View {
     }
     
     // MARK: - Logout Section
-    
     private var logoutSection: some View {
         SettingsGroup {
-            // Bouton déconnexion
             Button(action: {
                 showLogoutConfirmation = true
             }) {
@@ -252,9 +260,9 @@ struct ProfileView: View {
     private var subscriptionCard: some View {
         VStack(spacing: 16) {
             LinearGradient(
-                gradient:  Gradient(colors: [
-                    Color(red: 0.94, green: 0.47, blue: 0.34),  // coral
-                    Color(red: 0.96, green: 0.78, blue: 0.37)   // warmYellow
+                gradient: Gradient(colors: [
+                    Color(red: 0.94, green: 0.47, blue: 0.34),
+                    Color(red: 0.96, green: 0.78, blue: 0.37)
                 ]),
                 startPoint: .leading,
                 endPoint: .trailing
@@ -265,7 +273,7 @@ struct ProfileView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 48))
-                        .foregroundColor(. white)
+                        .foregroundColor(.white)
                     
                     Text("ESSAI GRATUIT")
                         .font(.system(size: 14, weight: .bold))
@@ -284,6 +292,26 @@ struct ProfileView: View {
             .shadow(color: Color(red: 0.94, green: 0.47, blue: 0.34).opacity(0.3), radius: 24, y: 8)
         }
     }
+    
+    // MARK: - Data Loading
+    private func loadProfileData() async {
+        isLoading = true
+        
+        do {
+            let session = try await SupabaseConfig.client.auth.session
+            userEmail = session.user.email ?? "email@example.com"
+            
+            // ✅ SIMPLIFIÉ : Tout vient de UserDataService.loadAllData()
+            try await userDataService.loadAllData()
+            
+            print("✅ Profil chargé: \(userDataService.articlesReadToday) articles aujourd'hui, \(userDataService.articlesReadThisMonth) ce mois")
+            
+        } catch {
+            print("❌ Erreur chargement profil: \(error)")
+        }
+        
+        isLoading = false
+    }
 }
 
 // MARK: - Stat Card Component
@@ -293,25 +321,32 @@ struct StatCard: View {
     let label: String
     var iconColor: Color = Color(red: 0.48, green: 0.63, blue: 0.36)
     var valueColor: Color = Color(red: 0.48, green: 0.63, blue: 0.36)
-    var labelColor: Color = Color(red:  0.4, green: 0.4, blue: 0.4)
-    var backgroundColor: Color = . white
+    var labelColor: Color = Color(red: 0.4, green: 0.4, blue: 0.4)
+    var backgroundColor: Color = .white
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
+            
             Image(systemName: iconName)
                 .font(.system(size: 28, weight: .medium))
                 .foregroundColor(iconColor)
+               
+                Text(value)
+                    .font(.system(size: 32, weight: .heavy))
+                    .foregroundColor(valueColor)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
             
-            Text(value)
-                .font(.system(size: 32, weight: .heavy))
-                .foregroundColor(valueColor)
-            
+            // Label en dessous
             Text(label)
-                .font(. system(size: 13, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(labelColor)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .padding(. vertical, 24)
+        .frame(height: 150)
         .padding(.horizontal, 18)
         .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -385,20 +420,19 @@ struct TimePickerSheet: View {
     init(selectedTime: Binding<String>) {
         self._selectedTime = selectedTime
         
-        // Convertir le String "9:00" en Date pour le picker
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         let time = formatter.date(from: selectedTime.wrappedValue) ?? Date()
-        self._pickerTime = State(initialValue:  time)
+        self._pickerTime = State(initialValue: time)
     }
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
                 Text("Choisissez l'heure de notification")
-                    .font(. system(size: 17, weight: .semibold))
-                    .foregroundColor(. secondary)
-                    .padding(. top, 30)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .padding(.top, 30)
                 
                 DatePicker(
                     "",
@@ -410,9 +444,7 @@ struct TimePickerSheet: View {
                 
                 Spacer()
                 
-                // Bouton Valider
                 Button {
-                    // Convertir la Date en String "HH:mm"
                     let formatter = DateFormatter()
                     formatter.dateFormat = "HH:mm"
                     selectedTime = formatter.string(from: pickerTime)

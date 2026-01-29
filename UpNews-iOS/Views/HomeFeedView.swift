@@ -112,10 +112,22 @@ struct HomeFeedView: View {
                 ZStack {
                     // Compagnon centré
                     if !userDataService.selectedCompanionId.isEmpty {
-                        Image(userDataService.selectedCompanionId)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 280)
+                        ZStack {
+                            
+                            Image(userDataService.selectedCompanionId)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 300)
+                                    .blur(radius: 30)
+                                    .opacity(0.6)
+                                    .offset(x: 5, y: -10)
+        
+                            
+                            Image(userDataService.selectedCompanionId)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 280)
+                        }
                     } else {
                         VStack(spacing: 12) {
                             Image(systemName: "pawprint.fill")
@@ -166,7 +178,7 @@ struct HomeFeedView: View {
     }
     
     // MARK:  - Main Article Card
-    
+
     private func mainArticleCard(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Badge catégorie
@@ -174,31 +186,31 @@ struct HomeFeedView: View {
                 Image(systemName: article.categoryIcon)
                     .font(.caption)
                 Text(article.category.capitalized)
-                    .font(. system(size: 13, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(article.categoryColor.opacity(0.6))
             .foregroundColor(.black)
-            .cornerRadius(8)
+            . cornerRadius(8)
             
             // Titre
             Text(article.title)
-                .font(.system(size: 20, weight:  .bold))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundColor(.upNewsBlack)
                 .lineLimit(3)
             
             // Description
             Text(article.contentPreview)
                 .font(.system(size: 15))
-                .foregroundColor(. secondary)
+                .foregroundColor(.secondary)
                 .lineLimit(3)
             
             // Boutons Lire / Audio
             HStack(spacing: 12) {
                 NavigationLink(destination: ArticleDetailView(article: article)) {
                     Label("Lire", systemImage: "book.fill")
-                        . font(.system(size: 16, weight:  .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -206,14 +218,26 @@ struct HomeFeedView: View {
                         .cornerRadius(12)
                 }
                 
+                // Bouton Audio avec badge "en travaux"
                 Button(action: {}) {
-                    Label("Audio", systemImage: "headphones")
-                        .font(.system(size: 16, weight: . semibold))
-                        . foregroundColor(.white)
-                        .frame(maxWidth: . infinity)
-                        .frame(height: 48)
-                        .background(Color.gray)
-                        .cornerRadius(12)
+                    ZStack(alignment: .topTrailing) {
+                        Label("Audio", systemImage: "headphones")
+                            .font(. system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            . background(Color.gray)
+                            .cornerRadius(12)
+                        
+                        // Badge "en travaux"
+                        Image(systemName: "wrench.and.screwdriver.fill")
+                            .font(. system(size: 12))
+                            .foregroundColor(.gray)
+                            .padding(4)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .offset(x: -4, y: 4)
+                    }
                 }
                 .disabled(true)
             }
@@ -255,12 +279,12 @@ struct HomeFeedView: View {
     
     private func secondaryArticleCard(_ article: Article) -> some View {
         HStack(spacing: 12) {
-            VStack {
-                Image(systemName: article.categoryIcon)
-                    .font(. caption)
-                    .foregroundColor(.black)
-            }
-            . frame(width: 40, height: 40)
+            
+            Image(systemName: article.categoryIcon)
+                    
+            .font(. caption)
+            .foregroundColor(.black)
+            .frame(width: 40, height: 40)
             .background(article.categoryColor.opacity(0.6))
             .cornerRadius(8)
             

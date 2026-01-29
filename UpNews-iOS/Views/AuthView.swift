@@ -15,10 +15,8 @@ struct AuthView: View {
     @State private var isSignUpMode = false
     @State private var email = ""
     @State private var password = ""
-    @State private var confirmPassword = ""
     @State private var username = ""
     @State private var showPassword = false
-    @State private var showConfirmPassword = false
     
     // Pour réinitialiser l'onboarding
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
@@ -80,14 +78,9 @@ struct AuthView: View {
                             showPassword: $showPassword
                         )
                         
-                        // Confirm Password (uniquement pour l'inscription)
+                        // Password strength indicator (uniquement pour l'inscription)
                         if isSignUpMode {
-                            CustomSecureField(
-                                icon: "lock.fill",
-                                placeholder: "Confirmer le mot de passe",
-                                text: $confirmPassword,
-                                showPassword: $showConfirmPassword
-                            )
+                            PasswordStrengthView(password: password)
                         }
                         
                         // Error message
@@ -179,12 +172,15 @@ struct AuthView: View {
                         .disabled(true)
                         .overlay(
                             Text("Bientôt disponible")
-                                .font(.caption2)
-                                .foregroundColor(.white.opacity(0.7))
-                                .padding(4)
-                                .background(Color.black.opacity(0.5))
-                                .cornerRadius(4)
-                                .offset(y: -25)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(Color.white)
+                                .cornerRadius(6)
+                                .offset(y: 15)
+                                .padding(6),
+                            alignment: .bottomTrailing
                         )
                     }
                     .padding(.horizontal, 24)
@@ -200,9 +196,7 @@ struct AuthView: View {
             return !email.isEmpty &&
                    !password.isEmpty &&
                    !username.isEmpty &&
-                   !confirmPassword.isEmpty &&
-                   password.count >= 6 &&
-                   password == confirmPassword
+                   password.count >= 6
         }
         return !email.isEmpty && !password.isEmpty
     }
@@ -217,6 +211,65 @@ struct AuthView: View {
                 await authService.signIn(email: email, password: password)
             }
         }
+    }
+}
+
+// MARK: - Password Strength View
+
+struct PasswordStrengthView: View {
+    let password: String
+    
+    private var strength: Int {
+        let length = password.count
+        let hasNumbers = password.rangeOfCharacter(from: .decimalDigits) != nil
+        let hasLetters = password.rangeOfCharacter(from: .letters) != nil
+        let hasSpecial = password.rangeOfCharacter(from: CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;:,.<>?")) != nil
+        
+        if length < 6 { return 0 }
+        if length < 8 { return 1 }
+        if hasNumbers && hasLetters && length >= 8 { return 2 }
+        if hasNumbers && hasLetters && hasSpecial && length >= 10 { return 3 }
+        return 1
+    }
+    
+    private var strengthColor: Color {
+        switch strength {
+        case 0: return .UpNewsRed
+        case 1: return .upNewsOrange
+        case 2: return .upNewsGreen
+        default: return .gray
+        }
+    }
+    
+    private var strengthText: String {
+        switch strength {
+        case 0: return "Faible"
+        case 1: return "Correct"
+        case 2: return "Fort"
+        default: return ""
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Barre de progression
+            HStack(spacing: 4) {
+                ForEach(0..<3) { index in
+                    Rectangle()
+                        .fill(index <= strength ? strengthColor : Color.gray.opacity(0.3))
+                        .frame(height: 4)
+                        .cornerRadius(2)
+                }
+            }
+            
+            // Texte
+            if !password.isEmpty {
+                Text(strengthText)
+                    .font(.system(size: 12))
+                    .foregroundColor(strengthColor)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: password)
     }
 }
 
