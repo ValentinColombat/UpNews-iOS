@@ -38,6 +38,13 @@ struct ContentView: View {
                         await appState.handleCompanionSelected()
                     }
                 }
+            
+            case .categorySelection: // ✅ NOUVEAU
+                CategorySelectionView {
+                    Task {
+                        await appState.handleCategoriesSelected()
+                    }
+                }
                 
             case .main:
                 MainTabView()

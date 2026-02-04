@@ -30,6 +30,7 @@ class AppStateService:  ObservableObject {
         case onboarding
         case auth
         case companionSelection
+        case categorySelection // ✅ NOUVEAU
         case main
     }
     
@@ -46,7 +47,6 @@ class AppStateService:  ObservableObject {
         
         // 1. Onboarding non terminé
         guard hasCompletedOnboarding else {
-            
             currentScreen = .onboarding
             return
         }
@@ -55,7 +55,6 @@ class AppStateService:  ObservableObject {
         await authService.checkAuthStatus()
         
         guard authService.isAuthenticated else {
-           
             currentScreen = .auth
             return
         }
@@ -64,18 +63,27 @@ class AppStateService:  ObservableObject {
         let hasCompanion = await userDataService.checkCompanion()
         
         guard hasCompanion else {
-            
-            currentScreen = . companionSelection
+            currentScreen = .companionSelection
             return
         }
         
-        // 4. Charger données
+        // 4. Charger le profil pour vérifier les catégories
         do {
-            try await userDataService.loadAllData()
+            try await userDataService.loadUserProfile()
+            
+            // Vérifier si l'utilisateur a des catégories préférées
+            guard !userDataService.preferredCategories.isEmpty else {
+                currentScreen = .categorySelection
+                return
+            }
+            
+            // 5. Charger le reste des données (articles, streak, stats)
+            try await userDataService.loadArticlesAndStats()
             
             currentScreen = .main
+            
         } catch {
-            print(" AppState:  Erreur chargement données:  \(error)")
+            print("❌ AppState: Erreur chargement données: \(error)")
             currentScreen = .auth
         }
     }
@@ -92,15 +100,56 @@ class AppStateService:  ObservableObject {
     
     /// Appelé après sélection du compagnon
     func handleCompanionSelected() async {
-        
+        print("🔵 AppState: handleCompanionSelected() - Début")
         currentScreen = .loading
         
+        // Petit délai pour laisser Supabase propager l'update
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+        
         do {
+            // Recharger le profil complet pour récupérer le compagnon
+            print("🔵 AppState: Chargement du profil après sélection compagnon...")
+            try await userDataService.loadUserProfile()
+            
+            print("🔵 AppState: Profil chargé - Compagnon: \(userDataService.selectedCompanionId)")
+            print("🔵 AppState: Catégories: \(userDataService.preferredCategories)")
+            
+            // Vérifier si l'utilisateur a des catégories préférées
+            if userDataService.preferredCategories.isEmpty {
+                print("🔵 AppState: Pas de catégories → categorySelection")
+                currentScreen = .categorySelection
+            } else {
+                // L'utilisateur a déjà des catégories (cas rare)
+                print("🔵 AppState: Catégories existantes → chargement articles")
+                try await userDataService.loadArticlesAndStats()
+                currentScreen = .main
+            }
+        } catch {
+            print("❌ AppState: Erreur chargement profil après compagnon: \(error)")
+            currentScreen = .categorySelection // Continuer quand même
+        }
+    }
+    
+    /// Appelé après sélection des catégories
+    func handleCategoriesSelected() async {
+        print("🟢 AppState: handleCategoriesSelected() - Début")
+        currentScreen = .loading
+        
+        // Petit délai pour laisser Supabase propager l'update
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+        
+        do {
+            // Recharger TOUT pour être sûr d'avoir toutes les données
+            print("🟢 AppState: Chargement complet des données...")
             try await userDataService.loadAllData()
+            
+            print("🟢 AppState: Données chargées - Compagnon: \(userDataService.selectedCompanionId)")
+            print("🟢 AppState: Catégories: \(userDataService.preferredCategories)")
+            print("🟢 AppState: Article principal: \(userDataService.mainArticle?.title ?? "none")")
             
             currentScreen = .main
         } catch {
-            print(" AppState: Erreur chargement après compagnon: \(error)")
+            print("❌ AppState: Erreur chargement après catégories: \(error)")
             currentScreen = .auth
         }
     }

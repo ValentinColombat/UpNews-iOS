@@ -100,7 +100,7 @@ struct LibraryView: View {
                             ScrollView {
                                 LazyVStack(spacing: 12) {
                                     ForEach(filteredArticles) { article in
-                                        NavigationLink(destination: ArticleDetailView(article: article)) {
+                                        NavigationLink(destination: ArticleDetailView(article: article,autoPlayAudio: false)) {
                                             articleCard(article)
                                         }
                                         .buttonStyle(.plain)
@@ -307,14 +307,8 @@ struct LibraryView: View {
         ZStack(alignment: .topTrailing) {
             // Card principale
             HStack(spacing: 12) {
-                // Badge catégorie
-                Image(systemName: article.categoryIcon)
-                        
-                .font(. caption)
-                .foregroundColor(.black)
-                .frame(width: 40, height: 40)
-                .background(article.categoryColor.opacity(0.6))
-                .cornerRadius(8)
+                // Badge catégorie avec style Liquid Glass
+                CategoryIconBadge(article: article)
                 
                 // Contenu
                 VStack(alignment: .leading, spacing: 6) {

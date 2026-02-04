@@ -1,4 +1,3 @@
-//
 //  HomeFeedView. swift
 //  UpNews-iOS
 
@@ -8,7 +7,7 @@ import Auth
 
 struct HomeFeedView: View {
     
-    @ObservedObject private var userDataService = UserDataService.shared
+    @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
     @ObservedObject private var authService = AuthService.shared
     
     private var xpProgress: Double {
@@ -115,13 +114,13 @@ struct HomeFeedView: View {
                         ZStack {
                             
                             Image(userDataService.selectedCompanionId)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 300)
-                                    .blur(radius: 30)
-                                    .opacity(0.6)
-                                    .offset(x: 5, y: -10)
-        
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 300)
+                                .blur(radius: 30)
+                                .opacity(0.6)
+                                .offset(x: 5, y: -10)
+                            
                             
                             Image(userDataService.selectedCompanionId)
                                 .resizable()
@@ -156,7 +155,7 @@ struct HomeFeedView: View {
                 
                 // CTA Button avec NavigationLink
                 if let main = userDataService.mainArticle {
-                    NavigationLink(destination: ArticleDetailView(article: main)) {
+                    NavigationLink(destination: ArticleDetailView(article: main, autoPlayAudio:false)) {
                         HStack(spacing: 8) {
                             Text("Découvre ta bonne nouvelle")
                                 .font(.system(size: 16, weight:  .semibold))
@@ -165,9 +164,35 @@ struct HomeFeedView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.orange.opacity(0.95))
-                        .cornerRadius(12)
-                        .shadow(radius: 1, x: 0, y: 2)
+                        .background(
+                            ZStack {
+                                // Fond glassmorphique
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.ultraThinMaterial)
+                                
+                                // Teinte colorée orange
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.upNewsOrange)
+                                
+                                // Reflet lumineux en haut
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(0.5),
+                                                Color.white.opacity(0)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .center
+                                        )
+                                    )
+                                
+                                // Bordure grise subtile
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            }
+                        )
+                        .shadow(color: Color.upNewsOrange.opacity(0.2), radius: 8, x: 0, y: 4)
                     }
                     .padding(.horizontal, 30)
                 }
@@ -178,21 +203,11 @@ struct HomeFeedView: View {
     }
     
     // MARK:  - Main Article Card
-
+    
     private func mainArticleCard(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Badge catégorie
-            HStack {
-                Image(systemName: article.categoryIcon)
-                    .font(.caption)
-                Text(article.category.capitalized)
-                    .font(.system(size: 13, weight: .semibold))
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(article.categoryColor.opacity(0.6))
-            .foregroundColor(.black)
-            . cornerRadius(8)
+            // Badge catégorie avec style Liquid Glass
+            CategoryTagView(article: article)
             
             // Titre
             Text(article.title)
@@ -206,111 +221,193 @@ struct HomeFeedView: View {
                 .foregroundColor(.secondary)
                 .lineLimit(3)
             
-            // Boutons Lire / Audio
+            // Boutons Lire / Audio (Style Liquid Glass coloré)
             HStack(spacing: 12) {
-                NavigationLink(destination: ArticleDetailView(article: article)) {
+                // Bouton Lire (Orange Liquid Glass)
+                NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false)) {
                     Label("Lire", systemImage: "book.fill")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(Color.upNewsOrange)
-                        .cornerRadius(12)
+                        .background(
+                            ZStack {
+                                // Fond glassmorphique
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.ultraThinMaterial)
+                                
+                                // Teinte colorée
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.upNewsOrange)
+                                
+                                // Reflet lumineux en haut
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(0.5),
+                                                Color.white.opacity(0)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .center
+                                        )
+                                    )
+                                
+                                // Bordure brillante
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            }
+                        )
+                        .shadow(color: Color.upNewsOrange.opacity(0.2), radius: 8, x: 0, y: 4)
                 }
                 
-                // Bouton Audio avec badge "en travaux"
-                Button(action: {}) {
-                    ZStack(alignment: .topTrailing) {
+                // Bouton Audio (Vert Liquid Glass)
+                if article.audioUrl != nil {
+                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: true)) {
                         Label("Audio", systemImage: "headphones")
-                            .font(. system(size: 16, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
-                            . background(Color.gray)
-                            .cornerRadius(12)
-                        
-                        // Badge "en travaux"
-                        Image(systemName: "wrench.and.screwdriver.fill")
-                            .font(. system(size: 12))
-                            .foregroundColor(.gray)
-                            .padding(4)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .offset(x: -4, y: 4)
+                            .background(
+                                ZStack {
+                                    // Fond glassmorphique
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(.ultraThinMaterial)
+                                    
+                                    // Teinte colorée
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.upNewsBlueMid)
+                                    
+                                    // Reflet lumineux en haut
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.white.opacity(0.5),
+                                                    Color.white.opacity(0)
+                                                ],
+                                                startPoint: .top,
+                                                endPoint: .center
+                                            )
+                                        )
+                                    
+                                    // Bordure brillante
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                }
+                            )
+                            .shadow(color: Color.upNewsBlueMid.opacity(0.2), radius: 8, x: 0, y: 4)
                     }
+                } else {
+                    // Bouton Audio désactivé (Gris Liquid Glass)
+                    Button(action: {}) {
+                        ZStack(alignment: .topTrailing) {
+                            Label("Audio", systemImage: "headphones")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(
+                                    ZStack {
+                                        // Fond glassmorphique
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(.ultraThinMaterial)
+                                        
+                                        // Teinte grisée
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.gray.opacity(0.05))
+                                        
+                                        // Bordure subtile
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                    }
+                                )
+                            
+                            // Badge "indisponible"
+                            Image(systemName: "speaker.slash.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.gray.opacity(0.7))
+                                .padding(5)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
+                                .offset(x: -6, y: 6)
+                        }
+                    }
+                    .disabled(true)
                 }
-                .disabled(true)
             }
         }
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(16)
-        .padding(.horizontal, 20)
-        .shadow(radius: 1, x: 0, y: 2)
-    }
-    
-    // MARK: - Secondary Articles Section
-    
-    private var secondaryArticlesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Voir tous les articles du jour")
-                    .font(. system(size: 18, weight: .semibold))
-                    .foregroundColor(.upNewsBlack)
-                
-                Text("...")
-                    .font(.system(size: 18))
-                    .foregroundColor(. secondary)
-            }
-            . padding(.top, 20)
-            .padding(.horizontal, 30)
-            
-            VStack(spacing: 12) {
-                ForEach(userDataService.secondaryArticles) { article in
-                    NavigationLink(destination: ArticleDetailView(article: article)) {
-                        secondaryArticleCard(article)
-                    }
-                    .buttonStyle(. plain)
-                }
-            }
+            .padding(20)
+            .background(Color.white)
+            .cornerRadius(16)
             .padding(.horizontal, 20)
+            .shadow(radius: 1, x: 0, y: 2)
         }
-    }
-    
-    private func secondaryArticleCard(_ article: Article) -> some View {
-        HStack(spacing: 12) {
-            
-            Image(systemName: article.categoryIcon)
+        
+        // MARK: - Secondary Articles Section
+        
+        private var secondaryArticlesSection: some View {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text("Voir tous les articles du jour")
+                        .font(. system(size: 18, weight: .semibold))
+                        .foregroundColor(.upNewsBlack)
                     
-            .font(. caption)
-            .foregroundColor(.black)
-            .frame(width: 40, height: 40)
-            .background(article.categoryColor.opacity(0.6))
-            .cornerRadius(8)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(article.category.capitalized)
-                    . font(.caption)
-                    .foregroundColor(.secondary)
+                    Text("...")
+                        .font(.system(size: 18))
+                        .foregroundColor(. secondary)
+                }
+                . padding(.top, 20)
+                .padding(.horizontal, 30)
                 
-                Text(article.title)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.upNewsBlack)
-                    .lineLimit(2)
+                VStack(spacing: 12) {
+                    ForEach(userDataService.secondaryArticles) { article in
+                        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio:false)) {
+                            secondaryArticleCard(article)
+                        }
+                        .buttonStyle(. plain)
+                    }
+                }
+                .padding(.horizontal, 20)
             }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundColor(. gray)
         }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(radius: 1, x: 0, y: 2)
+        
+        private func secondaryArticleCard(_ article: Article) -> some View {
+            HStack(spacing: 12) {
+                // Icône de catégorie avec style Liquid Glass
+                CategoryIconBadge(article: article)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(article.category.capitalized)
+                        . font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(article.title)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.upNewsBlack)
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(. gray)
+            }
+            .padding(16)
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(radius: 1, x: 0, y: 2)
+        }
     }
-}
+
 
 // MARK: - Preview
 

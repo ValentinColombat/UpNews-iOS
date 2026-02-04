@@ -40,9 +40,9 @@ extension Color {
     
     // MARK: - Couleurs par catégorie
     
-    static let categoryEcology = upNewsLightGreen
+    static let categoryEcology = upNewsGreen.opacity(0.5)
     static let categoryTech = upNewsBlueLight
-    static let categorySocial = upNewsYellow
+    static let categorySocial = upNewsYellow.opacity(0.5)
     static let categoryCulture = upNewsLightPurple
     static let categoryScience = upNewsBlueMid
     static let categoryHealth = upNewsLightPink

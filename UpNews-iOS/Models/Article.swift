@@ -12,6 +12,9 @@ struct Article: Identifiable, Codable, Hashable {
     let imageUrl: String?
     let sourceUrl: String?
     let createdAt: String
+    let audioUrl: String?
+    let audioFormat: String?
+
     
     // MARK: - CodingKeys
     
@@ -26,6 +29,8 @@ struct Article: Identifiable, Codable, Hashable {
         case imageUrl = "image_url"
         case sourceUrl = "source_url"
         case createdAt = "created_at"
+        case audioUrl = "audio_url"
+        case audioFormat = "audio_format"
     }
     
     // MARK: - Computed Properties

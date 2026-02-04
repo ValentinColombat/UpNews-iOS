@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- 
-IMPORTANT: Les valeurs Google Client ID dans ce fichier doivent correspondre à GoogleSecrets.swift
-Pour changer l'ID client, mettez à jour GoogleSecrets.swift ET ce fichier
--->
 <plist version="1.0">
 <dict>
 	<key>CFBundleURLTypes</key>
@@ -31,5 +27,14 @@ Pour changer l'ID client, mettez à jour GoogleSecrets.swift ET ce fichier
 	</array>
 	<key>GIDClientID</key>
 	<string>1017730104436-8s0t0m6r8g6pbk2urrjumuuh4vc63p2j.apps.googleusercontent.com</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

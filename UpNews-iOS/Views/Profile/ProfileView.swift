@@ -5,8 +5,12 @@ import Auth
 struct ProfileView: View {
     
     @StateObject private var authService = AuthService.shared
-    @ObservedObject private var userDataService = UserDataService.shared
+    @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
     @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false // ✅ NOUVEAU
+    @State private var isDeleting = false // ✅ NOUVEAU
+    @State private var deleteError: String? // ✅ NOUVEAU
+    @State private var showAccountDeletionInfo = false // ✅ NOUVEAU
     
     // Uniquement les données locales à la vue
     @State private var userEmail = ""
@@ -16,6 +20,7 @@ struct ProfileView: View {
     @State private var notificationTime = "9:00"
     @State private var showLanguagePicker = false
     @State private var showTimePicker = false
+    @State private var showCategoryPicker = false // ✅ NOUVEAU
     
     // Chargement
     @State private var isLoading = true
@@ -24,7 +29,7 @@ struct ProfileView: View {
         ZStack {
             if isLoading {
                 LoadingView()
-                      
+                
             } else {
                 ScrollView {
                     VStack(spacing: 0) {
@@ -79,6 +84,28 @@ struct ProfileView: View {
             }
         } message: {
             Text("Êtes-vous sûr de vouloir vous déconnecter ?")
+        }
+        // ✅ NOUVEAU - Alert de suppression de compte
+        .alert("Supprimer mon compte", isPresented: $showDeleteAccountConfirmation) {
+            Button("Annuler", role: .cancel) { }
+            Button("Supprimer définitivement", role: .destructive) {
+                Task {
+                    await deleteAccount()
+                }
+            }
+        } message: {
+            Text("⚠️ Cette action est irréversible. Toutes vos données (profil, progression, articles lus) seront définitivement supprimées.")
+        }
+        // ✅ NOUVEAU - Alert d'erreur
+        .alert("Erreur", isPresented: Binding(
+            get: { deleteError != nil },
+            set: { if !$0 { deleteError = nil } }
+        )) {
+            Button("OK", role: .cancel) { deleteError = nil }
+        } message: {
+            if let error = deleteError {
+                Text(error)
+            }
         }
     }
     
@@ -211,6 +238,14 @@ struct ProfileView: View {
                 .padding(.horizontal, 4)
             
             SettingsGroup {
+                // ✅ NOUVEAU - Catégories préférées
+                SettingsRow(
+                    iconName: "star.circle.fill",
+                    title: "Thématiques préférées",
+                    value: categoriesPreviewText,
+                    action: { showCategoryPicker = true }
+                )
+                
                 SettingsRow(
                     iconName: "globe",
                     title: "Langue",
@@ -230,28 +265,97 @@ struct ProfileView: View {
         .sheet(isPresented: $showTimePicker) {
             TimePickerSheet(selectedTime: $notificationTime)
         }
+        .sheet(isPresented: $showCategoryPicker) {
+            CategoryPreferencesSheet()
+        }
+        // ✅ NOUVEAU - Sheet d'information sur la suppression
+        .sheet(isPresented: $showAccountDeletionInfo) {
+            AccountDeletionInfoView()
+        }
+    }
+    
+    // ✅ NOUVEAU - Texte d'aperçu des catégories
+    private var categoriesPreviewText: String {
+        let count = userDataService.preferredCategories.count
+        if count == 0 {
+            return "Aucune"
+        } else if count == 1 {
+            return userDataService.preferredCategories.first?.capitalized ?? "1 catégorie"
+        } else if count == 6 {
+            return "Toutes"
+        } else {
+            return "\(count) catégories"
+        }
     }
     
     // MARK: - Logout Section
     private var logoutSection: some View {
-        SettingsGroup {
-            Button(action: {
-                showLogoutConfirmation = true
-            }) {
-                HStack(spacing: 12) {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .font(.system(size: 18))
-                        .foregroundColor(.red)
-                        .frame(width: 28)
-                    
-                    Text("Se déconnecter")
-                        .font(.system(size: 16))
-                        .foregroundColor(.red)
-                    
-                    Spacer()
+        VStack(spacing: 16) {
+            // Bouton de déconnexion (seul dans son groupe)
+            SettingsGroup {
+                Button(action: {
+                    showLogoutConfirmation = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 18))
+                            .foregroundColor(.upNewsOrange)
+                            .frame(width: 28)
+                        
+                        Text("Se déconnecter")
+                            .font(.system(size: 16))
+                            .foregroundColor(.upNewsOrange)
+                        
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.white)
                 }
-                .padding()
-                .background(Color.white)
+            }
+            
+            // Texte d'information discret (cliquable)
+            Button(action: {
+                showAccountDeletionInfo = true
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    
+                    Text("En savoir plus sur la suppression de compte")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 4)
+            }
+            .buttonStyle(.plain)
+            
+            // Bouton de suppression de compte (séparé visuellement)
+            SettingsGroup {
+                Button(action: {
+                    showDeleteAccountConfirmation = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(.red)
+                            .frame(width: 28)
+                        
+                        Text("Supprimer mon compte")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red)
+                        
+                        Spacer()
+                        
+                        if isDeleting {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
+                }
+                .disabled(isDeleting)
             }
         }
     }
@@ -311,6 +415,58 @@ struct ProfileView: View {
         }
         
         isLoading = false
+    }
+    
+    // MARK: - Delete Account
+    
+    /// ✅ Suppression complète du compte utilisateur
+    /// 
+    /// **Flow automatique via triggers PostgreSQL :**
+    /// 1. Suppression du profil `users` (cette fonction)
+    /// 2. CASCADE : Suppression automatique de `user_article_interactions`
+    /// 3. TRIGGER : Suppression automatique de `auth.users`
+    ///
+    /// **Résultat :** L'utilisateur peut se réinscrire avec le même email
+    private func deleteAccount() async {
+        isDeleting = true
+        deleteError = nil
+        
+        do {
+            // 1. Récupérer l'ID utilisateur
+            let session = try await SupabaseConfig.client.auth.session
+            let userId = session.user.id.uuidString
+            
+            print("🗑️ Suppression du compte: \(userId)")
+            
+            // 2. Supprimer le profil utilisateur
+            //    Le trigger PostgreSQL supprimera automatiquement auth.users
+            //    Le CASCADE supprimera automatiquement user_article_interactions
+            try await SupabaseConfig.client
+                .from("users")
+                .delete()
+                .eq("id", value: userId)
+                .execute()
+            
+            print("✅ Profil supprimé (trigger + cascade actifs)")
+            
+            // 3. Réinitialiser l'état local
+            await MainActor.run {
+                userDataService.reset()
+            }
+            
+            // 4. Déconnexion
+            await authService.signOut()
+            
+            print("✅ Compte complètement supprimé")
+            
+        } catch {
+            print("❌ Erreur suppression compte: \(error.localizedDescription)")
+            
+            await MainActor.run {
+                deleteError = "Impossible de supprimer le compte : \(error.localizedDescription)"
+                isDeleting = false
+            }
+        }
     }
 }
 
@@ -472,6 +628,241 @@ struct TimePickerSheet: View {
             }
         }
         .presentationDetents([.medium])
+    }
+}
+
+// MARK: - Category Preferences Sheet
+
+struct CategoryPreferencesSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
+    
+    @State private var selectedCategories: Set<String> = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                // ScrollView principal avec tout le contenu
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Info text en haut
+                        Text("Sélectionne au moins une catégorie pour personnaliser ton fil d'actualité")
+                            .font(.system(size: 15))
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 20)
+                        
+                        // Categories Grid
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 12),
+                            GridItem(.flexible(), spacing: 12)
+                        ], spacing: 12) {
+                            ForEach(CategoryItem.allCategoriesCompact) { category in
+                                CompactCategoryCard(
+                                    category: category,
+                                    isSelected: selectedCategories.contains(category.id)
+                                ) {
+                                    toggleCategory(category.id)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Selection count et messages dans le scroll
+                        VStack(spacing: 8) {
+                            if selectedCategories.isEmpty {
+                                Text("Sélectionne au moins une catégorie")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("\(selectedCategories.count) catégorie\(selectedCategories.count > 1 ? "s" : "") sélectionnée\(selectedCategories.count > 1 ? "s" : "")")
+                                    .font(.caption)
+                                    .foregroundColor(.upNewsGreen)
+                            }
+                            
+                            // Error message
+                            if let error = errorMessage {
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            }
+                        }
+                        .padding(.vertical, 16)
+                    }
+                    .padding(.bottom, 110) // Espace pour le bouton flottant
+                }
+                
+                // Bouton flottant en bas avec dégradé
+                VStack {
+                    Spacer()
+                    
+                    VStack(spacing: 0) {
+                        // Dégradé subtil pour indiquer qu'on peut scroller
+                        LinearGradient(
+                            colors: [
+                                Color(UIColor.systemBackground).opacity(0),
+                                Color(UIColor.systemBackground).opacity(0.95),
+                                Color(UIColor.systemBackground)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 30)
+                        
+                        // Zone du bouton
+                        Button {
+                            saveCategories()
+                        } label: {
+                            if isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("Enregistrer")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(selectedCategories.isEmpty ? Color.gray : Color.upNewsGreen)
+                        .cornerRadius(14)
+                        .padding(.horizontal, 20)
+                        .disabled(selectedCategories.isEmpty || isLoading)
+                        .shadow(color: selectedCategories.isEmpty ? .clear : Color.upNewsGreen.opacity(0.3), radius: 12, y: 4)
+                        .padding(.bottom, 30)
+                        .background(Color(UIColor.systemBackground))
+                    }
+                }
+                .ignoresSafeArea(edges: .bottom)
+            }
+            .navigationTitle("Mes thématiques")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Annuler") {
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                // Charger les catégories actuelles
+                selectedCategories = Set(userDataService.preferredCategories)
+            }
+        }
+    }
+    
+    private func toggleCategory(_ categoryId: String) {
+        withAnimation(.spring(response: 0.3)) {
+            if selectedCategories.contains(categoryId) {
+                selectedCategories.remove(categoryId)
+            } else {
+                selectedCategories.insert(categoryId)
+            }
+        }
+    }
+    
+    private func saveCategories() {
+        guard !selectedCategories.isEmpty else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                // Utiliser updatePreferredCategories pour recharger les articles
+                try await userDataService.updatePreferredCategories(Array(selectedCategories))
+                
+                await MainActor.run {
+                    isLoading = false
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Erreur : \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Compact Category Card (for sheet)
+
+struct CompactCategoryCard: View {
+    let category: CategoryItem
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(category.color.opacity(isSelected ? 1.0 : 0.2))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: category.icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(isSelected ? .white : category.color)
+                    
+                    // Checkmark
+                    if isSelected {
+                        Circle()
+                            .strokeBorder(Color.white, lineWidth: 2)
+                            .frame(width: 50, height: 50)
+                        
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .background(
+                                Circle()
+                                    .fill(category.color)
+                                    .frame(width: 16, height: 16)
+                            )
+                            .offset(x: 18, y: -18)
+                    }
+                }
+                
+                // Name
+                Text(category.name)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.upNewsBlack)
+                
+                // Description
+                Text(category.description)
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity)
+            .frame(height: 160)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white)
+                    .shadow(
+                        color: isSelected ? category.color.opacity(0.3) : Color.black.opacity(0.05),
+                        radius: isSelected ? 6 : 2,
+                        x: 0,
+                        y: 2
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? category.color : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
     }
 }
 

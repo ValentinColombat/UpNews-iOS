@@ -21,6 +21,7 @@ struct CompanionsView: View {
     
     // MARK: - State
     
+    @EnvironmentObject private var userDataService: UserDataService // ✅ AJOUTÉ
     @State private var selectedCompanionId: String = ""
     @State private var isLoading = true
     
@@ -98,7 +99,7 @@ struct CompanionsView: View {
             HStack(spacing: 4) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 12))
-                Text("Niv. \(UserDataService.shared.currentLevel)")
+                Text("Niv. \(userDataService.currentLevel)")
                     .font(.system(size: 14, weight: .bold))
             }
             .foregroundColor(.white)
@@ -125,20 +126,20 @@ struct CompanionsView: View {
     private var xpProgressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Progression vers niveau \(UserDataService.shared.currentLevel + 1)")
+                Text("Progression vers niveau \(userDataService.currentLevel + 1)")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.upNewsBlack)
                 
                 Spacer()
                 
-                Text("\(UserDataService.shared.currentXp) / \(UserDataService.shared.maxXp) XP")
+                Text("\(userDataService.currentXp) / \(userDataService.maxXp) XP")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.upNewsBlack)
             }
             
             // Barre de progression animée
             ProgressBar(
-                progress: CGFloat(UserDataService.shared.currentXp) / CGFloat(UserDataService.shared.maxXp),
+                progress: CGFloat(userDataService.currentXp) / CGFloat(userDataService.maxXp),
                 orientation: .horizontal
             )
         }
@@ -232,7 +233,7 @@ struct CompanionsView: View {
         .overlay(alignment: .topLeading) {
             
                 //Badge NOUVEAU pour compagnons récemment débloqués
-                if companion.isUnlocked && companion.unlockLevel == UserDataService.shared.currentLevel {
+                if companion.isUnlocked && companion.unlockLevel == userDataService.currentLevel {
                     Text("NOUVEAU")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.white)
@@ -255,10 +256,10 @@ struct CompanionsView: View {
     
     private func loadUserData() async {
         do {
-            try await UserDataService.shared.loadAllData()
+            try await userDataService.loadAllData()
             
             // Récupérer le compagnon sélectionné depuis le service
-            selectedCompanionId = UserDataService.shared.selectedCompanionId
+            selectedCompanionId = userDataService.selectedCompanionId
             updateUnlockedCompanions()
             updateEquippedCompanion()
             isLoading = false
@@ -268,7 +269,7 @@ struct CompanionsView: View {
     }
     
     private func updateUnlockedCompanions() {
-        let currentLevel = UserDataService.shared.currentLevel
+        let currentLevel = userDataService.currentLevel
         
         companions = companions.map { companion in
             CompanionCharacter(
@@ -350,7 +351,7 @@ struct CompanionsView: View {
                 .execute()
             
             // Mettre à jour le UserDataService pour synchroniser partout
-            UserDataService.shared.selectedCompanionId = companionId
+            userDataService.selectedCompanionId = companionId
             
             print("✅ Compagnon sauvegardé: \(companionId)")
         } catch {

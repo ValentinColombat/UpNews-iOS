@@ -16,6 +16,7 @@ struct UpNews_iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.light) // ✅ Force le Light Mode partout
                 .onOpenURL { url in
                     // Gère le callback Google
                     GIDSignIn.sharedInstance.handle(url)
