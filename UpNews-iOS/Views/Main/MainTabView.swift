@@ -6,7 +6,7 @@ struct MainTabView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeFeedView()
+            HomeFeedView(selectedTab: $selectedTab)
                 .environmentObject(userDataService) // ✅ AJOUTÉ
                 .tabItem {
                     Label("Home", systemImage: "house.fill")

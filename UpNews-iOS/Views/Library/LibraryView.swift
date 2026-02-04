@@ -100,7 +100,7 @@ struct LibraryView: View {
                             ScrollView {
                                 LazyVStack(spacing: 12) {
                                     ForEach(filteredArticles) { article in
-                                        NavigationLink(destination: ArticleDetailView(article: article,autoPlayAudio: false)) {
+                                        NavigationLink(destination: ArticleDetailView(article: article,autoPlayAudio: false,selectedTab: .constant(2))) {
                                             articleCard(article)
                                         }
                                         .buttonStyle(.plain)
@@ -586,8 +586,3 @@ struct LibraryView: View {
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    LibraryView()
-}

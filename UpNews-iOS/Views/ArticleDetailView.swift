@@ -14,6 +14,7 @@ struct ArticleDetailView: View {
     
     @State var article: Article
     let autoPlayAudio : Bool
+    @Binding var selectedTab: Int
     @Environment(\.dismiss) private var dismiss
     
     // MARK: - Audio Player States
@@ -695,25 +696,30 @@ struct ArticleDetailView: View {
                     }
                 }
                 
-                // Navigation vers CompanionsView
-                NavigationLink(destination: CompanionsView()) {
-                    Text("Super !")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.8)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(16)
+                // ✅ CORRECTION : Button au lieu de NavigationLink
+                Button {
+                                    showUnlockPopup = false
+                                    dismiss()  // Ferme l'ArticleDetailView
+                                    
+                                    // Change vers le tab Compagnons après un court délai
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        selectedTab = 1
+                                    }
+                                } label: {
+                                    Text("Super !")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.8)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .cornerRadius(16)
                 }
-                .simultaneousGesture(TapGesture().onEnded {
-                    showUnlockPopup = false
-                })
             }
             .padding(24)
             .background(Color.white)
@@ -722,7 +728,6 @@ struct ArticleDetailView: View {
             .padding(.horizontal, 40)
         }
     }
-    
     // MARK: - Helper Functions
     
     private func loadArticleInteractions() async {

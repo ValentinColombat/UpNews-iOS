@@ -9,6 +9,7 @@ struct HomeFeedView: View {
     
     @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
     @ObservedObject private var authService = AuthService.shared
+    @Binding var selectedTab: Int
     
     private var xpProgress: Double {
         guard userDataService.maxXp > 0 else { return 0 }
@@ -160,7 +161,7 @@ struct HomeFeedView: View {
                 
                 // CTA Button avec NavigationLink
                 if let main = userDataService.mainArticle {
-                    NavigationLink(destination: ArticleDetailView(article: main, autoPlayAudio:false)) {
+                    NavigationLink(destination: ArticleDetailView(article: main, autoPlayAudio:false, selectedTab :$selectedTab)) {
                         HStack(spacing: 8) {
                             Text("Découvre ta bonne nouvelle")
                                 .font(.system(size: 16, weight:  .semibold))
@@ -229,7 +230,7 @@ struct HomeFeedView: View {
             // Boutons Lire / Audio (Style Liquid Glass coloré)
             HStack(spacing: 12) {
                 // Bouton Lire (Orange Liquid Glass)
-                NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false)) {
+                NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false,selectedTab :$selectedTab)) {
                     Label("Lire", systemImage: "book.fill")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
@@ -268,7 +269,7 @@ struct HomeFeedView: View {
                 
                 // Bouton Audio (Vert Liquid Glass)
                 if article.audioUrl != nil {
-                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: true)) {
+                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: true,selectedTab :$selectedTab)) {
                         Label("Audio", systemImage: "headphones")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
@@ -374,7 +375,7 @@ struct HomeFeedView: View {
                 
                 VStack(spacing: 12) {
                     ForEach(userDataService.secondaryArticles) { article in
-                        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio:false)) {
+                        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio:false,selectedTab :$selectedTab)) {
                             secondaryArticleCard(article)
                         }
                         .buttonStyle(. plain)
@@ -466,8 +467,3 @@ struct HomeFeedView: View {
 }
 
 
-// MARK: - Preview
-
-#Preview {
-    HomeFeedView()
-}
