@@ -48,7 +48,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		153586DA2F30A21000B7EDEC /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		15C2F4042EEEF4F000A1F346 /* UpNews-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "UpNews-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -137,7 +136,6 @@
 				15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */,
 				15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */,
 				1588C7552EF94F7500551A36 /* Frameworks */,
-				153586DA2F30A21000B7EDEC /* LaunchScreen.storyboard */,
 			);
 			sourceTree = "<group>";
 		};

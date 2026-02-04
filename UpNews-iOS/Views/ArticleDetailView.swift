@@ -644,11 +644,27 @@ struct ArticleDetailView: View {
         ZStack {
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
-                .onTapGesture {
-                    showUnlockPopup = false
-                }
             
             VStack(spacing: 24) {
+                // Croix rouge pour fermer (en haut à droite)
+                HStack {
+                    Spacer()
+                    Button {
+                        showUnlockPopup = false
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 32, height: 32)
+                            
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .padding(.bottom, -8)
+                
                 VStack(spacing: 8) {
                     Text("🎉")
                         .font(.system(size: 60))
@@ -679,9 +695,8 @@ struct ArticleDetailView: View {
                     }
                 }
                 
-                Button {
-                    showUnlockPopup = false
-                } label: {
+                // Navigation vers CompanionsView
+                NavigationLink(destination: CompanionsView()) {
                     Text("Super !")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
@@ -696,6 +711,9 @@ struct ArticleDetailView: View {
                         )
                         .cornerRadius(16)
                 }
+                .simultaneousGesture(TapGesture().onEnded {
+                    showUnlockPopup = false
+                })
             }
             .padding(24)
             .background(Color.white)

@@ -17,20 +17,25 @@ struct HomeFeedView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    heroCard
-                    
-                    if let main = userDataService.mainArticle {
-                        mainArticleCard(main)
+            if userDataService.mainArticle == nil && userDataService.secondaryArticles.isEmpty {
+                // État vide - Aucun article disponible
+                emptyStateView
+            } else {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        heroCard
+                        
+                        if let main = userDataService.mainArticle {
+                            mainArticleCard(main)
+                        }
+                        
+                        secondaryArticlesSection
                     }
-                    
-                    secondaryArticlesSection
+                    .padding(. bottom, 40)
                 }
-                .padding(. bottom, 40)
+                .background(Color.upNewsBackground)
+                .ignoresSafeArea(edges: .top)
             }
-            .background(Color.upNewsBackground)
-            .ignoresSafeArea(edges: .top)
         }
     }
     
@@ -406,7 +411,59 @@ struct HomeFeedView: View {
             .cornerRadius(12)
             .shadow(radius: 1, x: 0, y: 2)
         }
+    
+    // MARK: - Empty State View
+    
+    private var emptyStateView: some View {
+        ZStack {
+            Color.upNewsBackground
+                .ignoresSafeArea()
+            
+            VStack(spacing: 24) {
+                // Icône avec animation
+                ZStack {
+                    Circle()
+                        .fill(Color.upNewsOrange.opacity(0.1))
+                        .frame(width: 120, height: 120)
+                    
+                    Image(systemName: "newspaper.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.upNewsOrange)
+                }
+                
+                VStack(spacing: 12) {
+                    Text("Nos petits journalistes sont en congé")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.upNewsBlack)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Reviens un peu plus tard !")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 40)
+                
+                // Illustration décorative (optionnelle)
+                HStack(spacing: 16) {
+                    Image(systemName: "cup.and.saucer.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.upNewsBlueMid.opacity(0.6))
+                    
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.upNewsGreen.opacity(0.6))
+                    
+                    Image(systemName: "beach.umbrella.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.upNewsOrange.opacity(0.6))
+                }
+                .padding(.top, 8)
+            }
+            .padding(40)
+        }
     }
+}
 
 
 // MARK: - Preview

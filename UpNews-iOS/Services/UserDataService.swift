@@ -28,6 +28,10 @@ class UserDataService: ObservableObject {
     @Published var articlesReadThisMonth: Int = 0
     @Published var preferredCategories: [String] = [] // ✅ NOUVEAU
     
+    // Notifications
+    @Published var notificationTime: String? = nil // Heure de notification (ex: "09:00")
+    @Published var notificationBonusClaimed: Bool = false // Bonus +200 XP réclamé
+    
     // Articles
     @Published var articles: [Article] = []
     @Published var mainArticle: Article?
@@ -316,11 +320,13 @@ class UserDataService: ObservableObject {
             let preferred_categories: [String]?
             let selected_main_article_id: UUID? // ✅ NOUVEAU
             let selected_main_article_date: String? // ✅ NOUVEAU
+            let notification_time: String?
+            let notification_bonus_claimed: Bool?
         }
         
         let response = try await SupabaseConfig.client
             .from("users")
-            .select("display_name, selected_companion_id, current_xp, max_xp, current_level, preferred_categories, selected_main_article_id, selected_main_article_date")
+            .select("display_name, selected_companion_id, current_xp, max_xp, current_level, preferred_categories, selected_main_article_id, selected_main_article_date, notification_time, notification_bonus_claimed")
             .eq("id", value: session.user.id.uuidString)
             .execute()
         
@@ -343,6 +349,8 @@ class UserDataService: ObservableObject {
         preferredCategories = profile.preferred_categories ?? []
         selectedMainArticleId = profile.selected_main_article_id // ✅ NOUVEAU
         selectedMainArticleDate = profile.selected_main_article_date // ✅ NOUVEAU
+        notificationTime = profile.notification_time
+        notificationBonusClaimed = profile.notification_bonus_claimed ?? false
         
         print("📥 UserDataService: Profil chargé:")
         print("   - Nom: \(displayName)")
@@ -350,6 +358,7 @@ class UserDataService: ObservableObject {
         print("   - Catégories: \(preferredCategories)")
         print("   - Niveau: \(currentLevel), XP: \(currentXp)/\(maxXp)")
         print("   - Article du jour: \(selectedMainArticleId?.uuidString ?? "none"), date: \(selectedMainArticleDate ?? "none")")
+        print("   - Notification: \(notificationTime ?? "none"), bonus: \(notificationBonusClaimed)")
     }
     
     // MARK: - Articles Stats
@@ -434,5 +443,85 @@ class UserDataService: ObservableObject {
         selectedMainArticleId = nil // ✅ NOUVEAU
         selectedMainArticleDate = nil // ✅ NOUVEAU
         currentUserId = nil
+        notificationTime = nil
+        notificationBonusClaimed = false
+    }
+    
+    // MARK: - Notification Management
+    
+    /// Donne le bonus XP pour l'activation des notifications (+200 XP)
+    func claimNotificationBonus() async throws {
+        guard !notificationBonusClaimed else {
+            print("⚠️ Bonus notification déjà réclamé")
+            return
+        }
+        
+        let session = try await SupabaseConfig.client.auth.session
+        
+        // Ajouter 200 XP
+        currentXp += 200
+        
+        // Vérifier si on passe de niveau
+        while currentXp >= maxXp {
+            currentXp -= maxXp
+            currentLevel += 1
+            maxXp = calculateMaxXp(for: currentLevel)
+            print("🎉 Niveau augmenté: \(currentLevel)")
+        }
+        
+        // Marquer le bonus comme réclamé
+        notificationBonusClaimed = true
+        
+        // Sauvegarder dans Supabase
+        struct NotificationBonusUpdate: Encodable {
+            let current_xp: Int
+            let current_level: Int
+            let max_xp: Int
+            let notification_bonus_claimed: Bool
+        }
+        
+        let update = NotificationBonusUpdate(
+            current_xp: currentXp,
+            current_level: currentLevel,
+            max_xp: maxXp,
+            notification_bonus_claimed: true
+        )
+        
+        try await SupabaseConfig.client
+            .from("users")
+            .update(update)
+            .eq("id", value: session.user.id.uuidString)
+            .execute()
+        
+        print("✅ Bonus notification réclamé: +200 XP")
+    }
+    
+    /// Sauvegarde l'heure de notification (hybride: UserDefaults + Supabase)
+    func saveNotificationTime(_ time: String) async throws {
+        // 1. Sauvegarder localement (rapide, offline)
+        UserDefaults.standard.set(time, forKey: "notificationTime")
+        notificationTime = time
+        
+        // 2. Sauvegarder dans Supabase (backup, sync)
+        let session = try await SupabaseConfig.client.auth.session
+        
+        struct NotificationTimeUpdate: Encodable {
+            let notification_time: String
+        }
+        
+        let update = NotificationTimeUpdate(notification_time: time)
+        
+        try await SupabaseConfig.client
+            .from("users")
+            .update(update)
+            .eq("id", value: session.user.id.uuidString)
+            .execute()
+        
+        print("✅ Heure de notification sauvegardée: \(time)")
+    }
+    
+    /// Calcule le max XP pour un niveau donné
+    private func calculateMaxXp(for level: Int) -> Int {
+        return 100 + (level - 1) * 50
     }
 }

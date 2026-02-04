@@ -22,6 +22,10 @@ struct ProfileView: View {
     @State private var showTimePicker = false
     @State private var showCategoryPicker = false // ✅ NOUVEAU
     
+    // Notifications
+    @State private var showNotificationPermission = false
+    @State private var showNotificationDenied = false
+    
     // Chargement
     @State private var isLoading = true
     
@@ -258,12 +262,19 @@ struct ProfileView: View {
                     iconName: "bell.fill",
                     title: "Notifications",
                     value: notificationTime,
-                    action: { showTimePicker = true }
+                    action: { handleNotificationTap() }
                 )
             }
         }
         .sheet(isPresented: $showTimePicker) {
-            TimePickerSheet(selectedTime: $notificationTime)
+            TimePickerSheet(
+                selectedTime: $notificationTime,
+                onSave: { time in
+                    Task {
+                        await saveNotificationTime(time)
+                    }
+                }
+            )
         }
         .sheet(isPresented: $showCategoryPicker) {
             CategoryPreferencesSheet()
@@ -271,6 +282,25 @@ struct ProfileView: View {
         // ✅ NOUVEAU - Sheet d'information sur la suppression
         .sheet(isPresented: $showAccountDeletionInfo) {
             AccountDeletionInfoView()
+        }
+        // ✅ NOUVEAU - Pop-up permission notifications
+        .fullScreenCover(isPresented: $showNotificationPermission) {
+            NotificationPermissionView(
+                onAllow: { handleNotificationAllow() },
+                onLater: { handleNotificationLater() }
+            )
+            .background(ClearBackgroundView())
+        }
+        // ✅ NOUVEAU - Alert si notifications refusées
+        .alert("Notifications désactivées", isPresented: $showNotificationDenied) {
+            Button("Annuler", role: .cancel) { }
+            Button("Ouvrir Réglages") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+        } message: {
+            Text("Active les notifications dans les réglages iOS pour recevoir tes rappels quotidiens.")
         }
     }
     
@@ -408,6 +438,13 @@ struct ProfileView: View {
             // ✅ SIMPLIFIÉ : Tout vient de UserDataService.loadAllData()
             try await userDataService.loadAllData()
             
+            // Charger l'heure de notification (hybride)
+            if let savedTime = userDataService.notificationTime {
+                notificationTime = savedTime
+            } else if let localTime = UserDefaults.standard.string(forKey: "notificationTime") {
+                notificationTime = localTime
+            }
+            
             print("✅ Profil chargé: \(userDataService.articlesReadToday) articles aujourd'hui, \(userDataService.articlesReadThisMonth) ce mois")
             
         } catch {
@@ -415,6 +452,74 @@ struct ProfileView: View {
         }
         
         isLoading = false
+    }
+    
+    // MARK: - Notification Handlers
+    
+    /// Gère le clic sur le bouton Notifications
+    private func handleNotificationTap() {
+        Task {
+            let isAuthorized = await NotificationManager.shared.checkAuthorizationStatus()
+            
+            if isAuthorized {
+                // Permission déjà accordée → Ouvrir directement le picker
+                showTimePicker = true
+            } else {
+                // Pas encore de permission → Montrer notre pop-up custom
+                showNotificationPermission = true
+            }
+        }
+    }
+    
+    /// L'utilisateur a cliqué sur "Activer" dans notre pop-up
+    private func handleNotificationAllow() {
+        Task {
+            // Demander la permission système
+            let granted = await NotificationManager.shared.requestAuthorization()
+            
+            if granted {
+                // Permission accordée → Donner le bonus XP
+                do {
+                    try await userDataService.claimNotificationBonus()
+                    print("🎉 Bonus +200 XP réclamé !")
+                    
+                    // Ouvrir le time picker
+                    await MainActor.run {
+                        showTimePicker = true
+                    }
+                } catch {
+                    print("❌ Erreur bonus XP: \(error)")
+                }
+            } else {
+                // Permission refusée → Montrer l'alert pour aller dans Réglages
+                await MainActor.run {
+                    showNotificationDenied = true
+                }
+            }
+        }
+    }
+    
+    /// L'utilisateur a cliqué sur "Plus tard"
+    private func handleNotificationLater() {
+        // Sauvegarder la date pour masquer la carte pendant 3 jours
+        let threeDaysLater = Calendar.current.date(byAdding: .day, value: 3, to: Date())!
+        UserDefaults.standard.set(threeDaysLater, forKey: "notificationBoostHiddenUntil")
+        print("⏰ Carte notification masquée jusqu'au \(threeDaysLater)")
+    }
+    
+    /// Sauvegarde l'heure choisie et programme la notification
+    private func saveNotificationTime(_ time: String) async {
+        do {
+            // Sauvegarder (hybride: UserDefaults + Supabase)
+            try await userDataService.saveNotificationTime(time)
+            
+            // Programmer la notification locale
+            await NotificationManager.shared.scheduleDailyNotification(at: time)
+            
+            print("✅ Notification programmée à \(time)")
+        } catch {
+            print("❌ Erreur sauvegarde heure: \(error)")
+        }
     }
     
     // MARK: - Delete Account
@@ -571,10 +676,13 @@ struct TimePickerSheet: View {
     @Binding var selectedTime: String
     @Environment(\.dismiss) var dismiss
     
+    let onSave: (String) -> Void
+    
     @State private var pickerTime: Date
     
-    init(selectedTime: Binding<String>) {
+    init(selectedTime: Binding<String>, onSave: @escaping (String) -> Void) {
         self._selectedTime = selectedTime
+        self.onSave = onSave
         
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
@@ -603,7 +711,9 @@ struct TimePickerSheet: View {
                 Button {
                     let formatter = DateFormatter()
                     formatter.dateFormat = "HH:mm"
-                    selectedTime = formatter.string(from: pickerTime)
+                    let timeString = formatter.string(from: pickerTime)
+                    selectedTime = timeString
+                    onSave(timeString)
                     dismiss()
                 } label: {
                     Text("Valider")
@@ -870,3 +980,5 @@ struct CompactCategoryCard: View {
 #Preview {
     ProfileView()
 }
+
+

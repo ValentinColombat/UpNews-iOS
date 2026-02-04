@@ -25,6 +25,10 @@ struct CompanionsView: View {
     @State private var selectedCompanionId: String = ""
     @State private var isLoading = true
     
+    // Notifications
+    @State private var showNotificationPermission = false
+    @State private var showNotificationDenied = false
+    
     // Ordre des compagnons selon le nouveau système de déblocage
     @State private var companions: [CompanionCharacter] = [
         // Niveau 1 (Débloqués automatiquement - Onboarding)
@@ -70,6 +74,14 @@ struct CompanionsView: View {
                                 // Barre de progression animée
                                 xpProgressSection
                                 
+                                // Carte boost notification (si niveau ≥ 2 et conditions remplies)
+                                if shouldShowNotificationBoost {
+                                    NotificationBoostCard {
+                                        handleNotificationBoostTap()
+                                    }
+                                    .padding(.horizontal, 20)
+                                }
+                                
                                 // Liste des compagnons
                                 companionsSection
                             }
@@ -81,6 +93,23 @@ struct CompanionsView: View {
             .navigationBarHidden(true)
             .task {
                 await loadUserData()
+            }
+            .fullScreenCover(isPresented: $showNotificationPermission) {
+                NotificationPermissionView(
+                    onAllow: { handleNotificationAllow() },
+                    onLater: { handleNotificationLater() }
+                )
+                .background(ClearBackgroundView())
+            }
+            .alert("Notifications désactivées", isPresented: $showNotificationDenied) {
+                Button("Annuler", role: .cancel) { }
+                Button("Ouvrir Réglages") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            } message: {
+                Text("Active les notifications dans les réglages iOS pour recevoir tes rappels quotidiens et débloquer +200 XP.")
             }
         }
     }
@@ -138,10 +167,29 @@ struct CompanionsView: View {
             }
             
             // Barre de progression animée
-            ProgressBar(
-                progress: CGFloat(userDataService.currentXp) / CGFloat(userDataService.maxXp),
-                orientation: .horizontal
-            )
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 12)
+                    
+                    // Progress
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.7)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(
+                            width: geometry.size.width * (CGFloat(userDataService.currentXp) / CGFloat(userDataService.maxXp)),
+                            height: 12
+                        )
+                }
+            }
+            .frame(height: 12)
         }
         .padding(20)
         .background(Color.white.opacity(0.5))
@@ -358,6 +406,77 @@ struct CompanionsView: View {
             print("❌ Erreur sauvegarde compagnon: \(error)")
         }
     }
+    
+    // MARK: - Notification Boost Logic
+    
+    /// Vérifie si on doit afficher la carte boost notification
+    private var shouldShowNotificationBoost: Bool {
+        // Condition 1: Niveau ≥ 2
+        guard userDataService.currentLevel >= 2 else { return false }
+        
+        // Condition 2: Bonus pas encore réclamé
+        guard !userDataService.notificationBonusClaimed else { return false }
+        
+        // Condition 3: Pas masqué temporairement (3 jours après "Plus tard")
+        if let hiddenUntil = UserDefaults.standard.object(forKey: "notificationBoostHiddenUntil") as? Date {
+            return Date() > hiddenUntil
+        }
+        
+        return true
+    }
+    
+    /// L'utilisateur clique sur la carte boost
+    private func handleNotificationBoostTap() {
+        Task {
+            let isAuthorized = await NotificationManager.shared.checkAuthorizationStatus()
+            
+            if isAuthorized {
+                // Déjà autorisé mais bonus pas réclamé (cas rare)
+                do {
+                    try await userDataService.claimNotificationBonus()
+                    print("🎉 Bonus +200 XP réclamé !")
+                } catch {
+                    print("❌ Erreur bonus: \(error)")
+                }
+            } else {
+                // Montrer notre pop-up custom
+                showNotificationPermission = true
+            }
+        }
+    }
+    
+    /// L'utilisateur a cliqué sur "Activer"
+    private func handleNotificationAllow() {
+        Task {
+            let granted = await NotificationManager.shared.requestAuthorization()
+            
+            if granted {
+                // Permission accordée → Donner le bonus XP
+                do {
+                    try await userDataService.claimNotificationBonus()
+                    print("🎉 Bonus +200 XP réclamé !")
+                    
+                    // Programmer notification par défaut à 9h
+                    await NotificationManager.shared.scheduleDailyNotification(at: "09:00")
+                    try await userDataService.saveNotificationTime("09:00")
+                } catch {
+                    print("❌ Erreur bonus: \(error)")
+                }
+            } else {
+                // Permission refusée
+                await MainActor.run {
+                    showNotificationDenied = true
+                }
+            }
+        }
+    }
+    
+    /// L'utilisateur a cliqué sur "Plus tard"
+    private func handleNotificationLater() {
+        let threeDaysLater = Calendar.current.date(byAdding: .day, value: 3, to: Date())!
+        UserDefaults.standard.set(threeDaysLater, forKey: "notificationBoostHiddenUntil")
+        print("⏰ Carte notification masquée jusqu'au \(threeDaysLater)")
+    }
 }
 
 
@@ -366,3 +485,5 @@ struct CompanionsView: View {
 #Preview {
     CompanionsView()
 }
+
+
