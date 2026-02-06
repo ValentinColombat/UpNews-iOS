@@ -4,6 +4,7 @@
 
 import SwiftUI
 import Supabase
+import ConfettiSwiftUI
 
 // MARK: - Companion Model
 
@@ -28,6 +29,11 @@ struct CompanionsView: View {
     // Notifications
     @State private var showNotificationPermission = false
     @State private var showNotificationDenied = false
+    
+    // ✅ AJOUTÉ : Déblocage de compagnons
+    @State private var showUnlockPopup = false
+    @State private var unlockedCompanions: [(name: String, imageName: String)] = []
+    @State private var confettiCounter = 0
     
     // Ordre des compagnons selon le nouveau système de déblocage
     @State private var companions: [CompanionCharacter] = [
@@ -65,30 +71,30 @@ struct CompanionsView: View {
                     LoadingView()
                 }
                 
-                    else {
-                        ScrollView {
-                            VStack(spacing: 20) {
-                                // Header avec niveau
-                                headerSection
-                                
-                                // Barre de progression animée
-                                xpProgressSection
-                                
-                                // Carte boost notification (si niveau ≥ 2 et conditions remplies)
-                                if shouldShowNotificationBoost {
-                                    NotificationBoostCard {
-                                        handleNotificationBoostTap()
-                                    }
-                                    .padding(.horizontal, 20)
+                else {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Header avec niveau
+                            headerSection
+                            
+                            // Barre de progression animée
+                            xpProgressSection
+                            
+                            // Carte boost notification
+                            if shouldShowNotificationBoost {
+                                NotificationBoostCard {
+                                    handleNotificationBoostTap()
                                 }
-                                
-                                // Liste des compagnons
-                                companionsSection
+                                .padding(.horizontal, 20)
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 100)
+                            
+                            // Liste des compagnons
+                            companionsSection
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 100)
                     }
+                }
             }
             .navigationBarHidden(true)
             .task {
@@ -109,8 +115,20 @@ struct CompanionsView: View {
                     }
                 }
             } message: {
-                Text("Active les notifications dans les réglages iOS pour recevoir tes rappels quotidiens et débloquer +200 XP.")
+                Text("Active les notifications dans les réglages iOS pour recevoir tes rappels quotidiens et débloquer +80 XP.")
             }
+            // ✅ AJOUTÉ : Overlay pour la popup de déblocage
+            .overlay {
+                if showUnlockPopup {
+                    unlockCompanionPopup
+                }
+            }
+            // ✅ AJOUTÉ : Confettis
+            .confettiCannon(
+                trigger: $confettiCounter,
+                num: 50,
+                radius: 500
+            )
         }
     }
     
@@ -167,28 +185,10 @@ struct CompanionsView: View {
             }
             
             // Barre de progression animée
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    // Background
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 12)
-                    
-                    // Progress
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(
-                            width: geometry.size.width * (CGFloat(userDataService.currentXp) / CGFloat(userDataService.maxXp)),
-                            height: 12
-                        )
-                }
-            }
+            ProgressBar(
+                progress: CGFloat(userDataService.currentXp) / CGFloat(userDataService.maxXp),
+                orientation: .horizontal
+            )
             .frame(height: 12)
         }
         .padding(20)
@@ -280,18 +280,18 @@ struct CompanionsView: View {
         }
         .overlay(alignment: .topLeading) {
             
-                //Badge NOUVEAU pour compagnons récemment débloqués
-                if companion.isUnlocked && companion.unlockLevel == userDataService.currentLevel {
-                    Text("NOUVEAU")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.upNewsOrange)
-                        .cornerRadius(8)
-                        .padding(8)
-                }
+            //Badge NOUVEAU pour compagnons récemment débloqués
+            if companion.isUnlocked && companion.unlockLevel == userDataService.currentLevel {
+                Text("New")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.upNewsOrange)
+                    .cornerRadius(8)
+                    .padding(8)
             }
+        }
         .cornerRadius(20)
         .onTapGesture {
             if companion.isUnlocked && !companion.isEquipped {
@@ -411,50 +411,52 @@ struct CompanionsView: View {
     
     /// Vérifie si on doit afficher la carte boost notification
     private var shouldShowNotificationBoost: Bool {
-        // Condition 1: Niveau ≥ 2
-        guard userDataService.currentLevel >= 2 else { return false }
-        
-        // Condition 2: Bonus pas encore réclamé
-        guard !userDataService.notificationBonusClaimed else { return false }
-        
-        // Condition 3: Pas masqué temporairement (3 jours après "Plus tard")
-        if let hiddenUntil = UserDefaults.standard.object(forKey: "notificationBoostHiddenUntil") as? Date {
-            return Date() > hiddenUntil
-        }
-        
-        return true
+        // Afficher uniquement si bonus pas réclamé
+        return !userDataService.notificationBonusClaimed
     }
     
     /// L'utilisateur clique sur la carte boost
     private func handleNotificationBoostTap() {
-        Task {
-            let isAuthorized = await NotificationManager.shared.checkAuthorizationStatus()
-            
-            if isAuthorized {
-                // Déjà autorisé mais bonus pas réclamé (cas rare)
-                do {
-                    try await userDataService.claimNotificationBonus()
-                    print("🎉 Bonus +200 XP réclamé !")
-                } catch {
-                    print("❌ Erreur bonus: \(error)")
-                }
-            } else {
-                // Montrer notre pop-up custom
-                showNotificationPermission = true
-            }
-        }
+        // Toujours montrer la pop-up custom
+        showNotificationPermission = true
     }
     
     /// L'utilisateur a cliqué sur "Activer"
     private func handleNotificationAllow() {
         Task {
+            // ✅ AJOUTÉ : Sauvegarder le niveau AVANT le bonus
+            let levelBefore = userDataService.currentLevel
+            
+            // Demander la permission système
             let granted = await NotificationManager.shared.requestAuthorization()
             
             if granted {
                 // Permission accordée → Donner le bonus XP
                 do {
                     try await userDataService.claimNotificationBonus()
-                    print("🎉 Bonus +200 XP réclamé !")
+                    print("🎉 Bonus +80 XP réclamé !")
+                    
+                    let levelAfter = userDataService.currentLevel
+                                    
+                    //Si montée de niveau, afficher la popup
+                    if levelAfter > levelBefore {
+                    // Chercher les compagnons du nouveau niveau
+                    let companionsByLevel: [Int: [(name: String, imageName: String)]] = [
+                        2: [("Brume", "brume"), ("Flocon", "flocon")],
+                        5: [("Caramel", "caramel"), ("Écorce", "ecorce"), ("Luciole", "luciole")],
+                        10: [("Mochi", "mochi"), ("Sève", "seve")],
+                        15: [("Pépite", "pepite")],
+                        20: [("Noisette", "noisette")]
+                        ]
+                                        
+                    if let newCompanions = companionsByLevel[levelAfter] {
+                        unlockedCompanions = newCompanions
+                        showUnlockPopup = true
+                        confettiCounter += 1
+                    }
+            }
+                    // ✅ AJOUTÉ : Recharger les données pour mettre à jour l'UI
+                    await loadUserData()
                     
                     // Programmer notification par défaut à 9h
                     await NotificationManager.shared.scheduleDailyNotification(at: "09:00")
@@ -473,17 +475,125 @@ struct CompanionsView: View {
     
     /// L'utilisateur a cliqué sur "Plus tard"
     private func handleNotificationLater() {
-        let threeDaysLater = Calendar.current.date(byAdding: .day, value: 3, to: Date())!
-        UserDefaults.standard.set(threeDaysLater, forKey: "notificationBoostHiddenUntil")
-        print("⏰ Carte notification masquée jusqu'au \(threeDaysLater)")
+        print("⏰ Utilisateur a choisi 'Plus tard'")
+    }
+    
+    // ✅ AJOUTÉ : Vérifie les compagnons débloqués
+    private func checkUnlockedCompanions(oldLevel: Int, newLevel: Int) {
+        let companionsByLevel: [Int: [(name: String, imageName: String)]] = [
+            2: [("Brume", "brume"), ("Flocon", "flocon")],
+            5: [("Caramel", "caramel"), ("Écorce", "ecorce"), ("Luciole", "luciole")],
+            10: [("Mochi", "mochi"), ("Sève", "seve")],
+            15: [("Pépite", "pepite")],
+            20: [("Noisette", "noisette")]
+        ]
+        
+        var newlyUnlocked: [(name: String, imageName: String)] = []
+        
+        // Parcourir tous les niveaux entre oldLevel et newLevel
+        for level in (oldLevel + 1)...newLevel {
+            if let companions = companionsByLevel[level] {
+                newlyUnlocked.append(contentsOf: companions)
+            }
+        }
+        
+        // Si des compagnons ont été débloqués, afficher la popup
+        if !newlyUnlocked.isEmpty {
+            unlockedCompanions = newlyUnlocked
+            showUnlockPopup = true
+            confettiCounter += 1
+            print("🎉 \(newlyUnlocked.count) nouveaux compagnons débloqués !")
+        } else {
+            print("ℹ️ Niveau augmenté mais aucun nouveau compagnon à ce palier")
+        }
+    }
+    
+    // ✅ AJOUTÉ : Popup de déblocage
+    private var unlockCompanionPopup: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 24) {
+                // Croix pour fermer
+                HStack {
+                    Spacer()
+                    Button {
+                        showUnlockPopup = false
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 32, height: 32)
+                            
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .padding(.bottom, -8)
+                
+                VStack(spacing: 8) {
+                    Text("🎉")
+                        .font(.system(size: 60))
+                    
+                    Text("Nouveaux compagnons débloqués !")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.upNewsBlack)
+                        .multilineTextAlignment(.center)
+                }
+                
+                VStack(spacing: 16) {
+                    ForEach(unlockedCompanions, id: \.name) { companion in
+                        HStack(spacing: 16) {
+                            Image(companion.imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                            
+                            Text(companion.name)
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.upNewsBlack)
+                            
+                            Spacer()
+                        }
+                        .padding(16)
+                        .background(Color.upNewsBlueMid.opacity(0.1))
+                        .cornerRadius(16)
+                    }
+                }
+                
+                // Bouton "Super !"
+                Button {
+                    showUnlockPopup = false
+                } label: {
+                    Text("Super !")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                }
+            }
+            .padding(24)
+            .background(Color.white)
+            .cornerRadius(24)
+            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .padding(.horizontal, 40)
+        }
     }
 }
-
-
+    
 // MARK: - Preview
 
 #Preview {
     CompanionsView()
 }
-
-

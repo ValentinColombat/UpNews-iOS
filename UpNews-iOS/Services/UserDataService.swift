@@ -30,7 +30,7 @@ class UserDataService: ObservableObject {
     
     // Notifications
     @Published var notificationTime: String? = nil // Heure de notification (ex: "09:00")
-    @Published var notificationBonusClaimed: Bool = false // Bonus +200 XP réclamé
+    @Published var notificationBonusClaimed: Bool = false // Bonus +80 XP réclamé
     
     // Articles
     @Published var articles: [Article] = []
@@ -449,25 +449,26 @@ class UserDataService: ObservableObject {
     
     // MARK: - Notification Management
     
-    /// Donne le bonus XP pour l'activation des notifications (+200 XP)
+    /// Donne le bonus XP pour l'activation des notifications (+80 XP)
     func claimNotificationBonus() async throws {
         guard !notificationBonusClaimed else {
-            print("⚠️ Bonus notification déjà réclamé")
+            print("⚠️ Bonus notification déjà r��clamé")
             return
         }
         
         let session = try await SupabaseConfig.client.auth.session
         
-        // Ajouter 200 XP
-        currentXp += 200
+        // Ajouter 80 XP
+        currentXp += 80
         
-        // Vérifier si on passe de niveau
-        while currentXp >= maxXp {
-            currentXp -= maxXp
+        // ✅ CORRECTION : maxXp reste TOUJOURS à 100
+        // Vérifier si on passe de niveau(x)
+        while currentXp >= 100 {
+            currentXp -= 100
             currentLevel += 1
-            maxXp = calculateMaxXp(for: currentLevel)
             print("🎉 Niveau augmenté: \(currentLevel)")
         }
+        // maxXp = 100 (ne change jamais)
         
         // Marquer le bonus comme réclamé
         notificationBonusClaimed = true
@@ -476,14 +477,12 @@ class UserDataService: ObservableObject {
         struct NotificationBonusUpdate: Encodable {
             let current_xp: Int
             let current_level: Int
-            let max_xp: Int
             let notification_bonus_claimed: Bool
         }
         
         let update = NotificationBonusUpdate(
             current_xp: currentXp,
             current_level: currentLevel,
-            max_xp: maxXp,
             notification_bonus_claimed: true
         )
         
@@ -493,7 +492,7 @@ class UserDataService: ObservableObject {
             .eq("id", value: session.user.id.uuidString)
             .execute()
         
-        print("✅ Bonus notification réclamé: +200 XP")
+        print("✅ Bonus notification réclamé: +80 XP → Niveau \(currentLevel), \(currentXp)/100 XP")
     }
     
     /// Sauvegarde l'heure de notification (hybride: UserDefaults + Supabase)

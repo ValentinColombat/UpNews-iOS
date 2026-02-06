@@ -226,7 +226,7 @@ struct ProfileView: View {
             StatCard(
                 iconName: "star.fill",
                 value: "\(userDataService.maxXp-userDataService.currentXp)",
-                label: "Points restants",
+                label: "XP restante",
                 iconColor: Color.upNewsBlueMid,
                 valueColor: Color.upNewsBlueMid
             )
@@ -481,7 +481,7 @@ struct ProfileView: View {
                 // Permission accordée → Donner le bonus XP
                 do {
                     try await userDataService.claimNotificationBonus()
-                    print("🎉 Bonus +200 XP réclamé !")
+                    print("🎉 Bonus +80 XP réclamé !")
                     
                     // Ouvrir le time picker
                     await MainActor.run {

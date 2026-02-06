@@ -501,7 +501,7 @@ struct ArticleDetailView: View {
             claimXpPoints()
         } label: {
             VStack(spacing: 8) {
-                Text(hasClaimedXp ? "Points récupérés !" : "+20 points gagnés!")
+                Text(hasClaimedXp ? "XP récupérée !" : "+20 d'XP gagnés!")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.white)
                 

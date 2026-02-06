@@ -40,7 +40,7 @@ struct NotificationBoostCard: View {
                             .font(.system(size: 11))
                             .foregroundColor(.yellow)
                         
-                        Text("+200 XP")
+                        Text("+80 XP")
                             .font(.system(size: 15, weight: .black))
                             .foregroundColor(.white)
                     }
@@ -57,7 +57,7 @@ struct NotificationBoostCard: View {
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 12)
             .padding(.vertical, 12)
             .background(
                 ZStack {

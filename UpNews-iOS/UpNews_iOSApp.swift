@@ -4,10 +4,12 @@ import SwiftUI
 import Supabase
 import Auth
 import GoogleSignIn
+import UserNotifications
 
 @main
 struct UpNews_iOSApp: App {
     
+    @Environment(\.scenePhase) private var scenePhase
    
     init() {
         configureGoogleSignIn()
@@ -35,6 +37,12 @@ struct UpNews_iOSApp: App {
                     }
                 }
         }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                // L'app devient active → effacer le badge des notifications
+                clearNotificationBadge()
+            }
+        }
     }
     
     private func configureGoogleSignIn() {
@@ -43,5 +51,24 @@ struct UpNews_iOSApp: App {
         
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
+    }
+    
+    // MARK: - Notification Badge Management
+    
+    /// Efface le badge de notification quand l'app est ouverte
+    private func clearNotificationBadge() {
+        Task {
+            do {
+                // Effacer le badge (pastille rouge)
+                try await UNUserNotificationCenter.current().setBadgeCount(0)
+                
+                // Effacer aussi les notifications du centre de notifications
+                UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+                
+                print("✅ Badge de notification effacé")
+            } catch {
+                print("❌ Erreur effacement badge: \(error)")
+            }
+        }
     }
 }
