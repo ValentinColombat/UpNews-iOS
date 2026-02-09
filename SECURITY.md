@@ -8,10 +8,11 @@ Ce document résume l'audit de sécurité effectué sur le repository UpNews-iOS
 
 ### ✅ Données Sensibles Correctement Protégées
 
-1. **Identifiants Supabase** - ✅ SÉCURISÉ
-   - Fichier: `SupabaseSecrets.swift` (correctement ignoré par `.gitignore`)
+1. **Identifiants Supabase** - ✅ MAINTENANT SÉCURISÉ
+   - Fichier: `SupabaseSecrets.swift` (retiré du tracking Git et correctement ignoré par `.gitignore`)
    - Template fourni: `SupabaseSecrets.example.swift`
    - Utilisation: Via `SupabaseConfig.swift`
+   - **⚠️ IMPORTANT**: Les credentials Supabase ont été exposés dans l'historique Git et DOIVENT être rotés
 
 2. **Identifiant Google OAuth** - ✅ MAINTENANT SÉCURISÉ
    - Fichier: `GoogleSecrets.swift` (ajouté au `.gitignore`)
@@ -20,7 +21,29 @@ Ce document résume l'audit de sécurité effectué sur le repository UpNews-iOS
 
 ### ⚠️ Données Sensibles Trouvées (CORRIGÉES)
 
-#### Google OAuth Client ID
+#### 1. Credentials Supabase (CRITIQUE - Février 2026)
+- **Statut Précédent**: ❌ Exposé dans Git
+- **Statut Actuel**: ✅ Retiré du tracking Git
+- **Fichiers Concernés**:
+  - `UpNews-iOS/Services/SupabaseSecrets.swift` - RETIRÉ du tracking Git via `git rm --cached`
+
+**Actions Prises**:
+1. ✅ Retrait de `SupabaseSecrets.swift` du tracking Git (`git rm --cached`)
+2. ✅ Vérification que `.gitignore` contient bien `SupabaseSecrets.swift`
+3. ✅ Template `SupabaseSecrets.example.swift` existe avec valeurs masquées
+
+**🔴 ACTION REQUISE IMMÉDIATEMENT**:
+Le fichier `SupabaseSecrets.swift` contenait des credentials réels qui ont été exposés dans l'historique Git:
+- **URL Supabase**: `https://twqxlizczyntiicjjndu.supabase.co`
+- **Anon Key**: Token JWT exposé
+
+**Il est IMPÉRATIF de**:
+1. Se connecter à la console Supabase
+2. Générer une nouvelle `anon key`
+3. Mettre à jour votre fichier local `SupabaseSecrets.swift`
+4. Révoquer l'ancienne clé exposée
+
+#### 2. Google OAuth Client ID
 - **Statut Précédent**: ❌ Exposé dans le code
 - **Statut Actuel**: ✅ Sécurisé
 - **Fichiers Concernés**:
@@ -99,26 +122,43 @@ Ce document résume l'audit de sécurité effectué sur le repository UpNews-iOS
 
 ## 🎯 Recommandations Futures
 
-1. **Rotation des Secrets**: Si ce repository était public, il est recommandé de:
+1. **🔴 URGENT - Rotation des Secrets Supabase**: 
+   - **Action immédiate requise**: Générer une nouvelle `anon key` dans la console Supabase
+   - Révoquer l'ancienne clé qui a été exposée dans Git
+   - Mettre à jour le fichier local `SupabaseSecrets.swift`
+
+2. **Rotation Google OAuth Client ID**: Si ce repository était public, il est recommandé de:
    - Générer un nouveau Google OAuth Client ID
    - Révoquer l'ancien Client ID exposé
 
-2. **CI/CD**: Considérer l'utilisation de secrets d'environnement pour les pipelines CI/CD
+3. **Nettoyage de l'Historique Git** (optionnel mais recommandé):
+   - Envisager d'utiliser `git filter-repo` ou BFG Repo-Cleaner pour supprimer complètement `SupabaseSecrets.swift` de l'historique Git
+   - Note: Cela nécessite une coordination avec tous les contributeurs car cela réécrit l'historique
 
-3. **Scan Automatique**: Mettre en place un outil de scan automatique (comme GitGuardian ou TruffleHog) pour détecter les secrets accidentellement committés
+4. **CI/CD**: Considérer l'utilisation de secrets d'environnement pour les pipelines CI/CD
 
-4. **Variables d'Environnement**: Pour un projet en production, considérer l'utilisation de variables d'environnement ou d'un gestionnaire de secrets (comme AWS Secrets Manager, Azure Key Vault, etc.)
+5. **Scan Automatique**: Mettre en place un outil de scan automatique (comme GitGuardian ou TruffleHog) pour détecter les secrets accidentellement committés
+
+6. **Variables d'Environnement**: Pour un projet en production, considérer l'utilisation de variables d'environnement ou d'un gestionnaire de secrets (comme AWS Secrets Manager, Azure Key Vault, etc.)
 
 ## ✅ Conclusion
 
-L'audit a identifié un Google OAuth Client ID exposé dans le code source. Ce problème a été corrigé en:
-- Déplaçant le secret vers un fichier dédié (`GoogleSecrets.swift`)
-- Ajoutant ce fichier au `.gitignore`
-- Fournissant un template pour les nouveaux développeurs
+L'audit a identifié plusieurs problèmes de sécurité qui ont été corrigés:
+
+1. **Credentials Supabase exposés** (CRITIQUE):
+   - Problème: Le fichier `SupabaseSecrets.swift` contenant des credentials réels était tracké par Git
+   - Solution: Retiré du tracking Git via `git rm --cached`
+   - **Action requise**: ROTATION IMMÉDIATE des credentials Supabase
+
+2. **Google OAuth Client ID exposé**:
+   - Problème: Client ID hardcodé dans le code
+   - Solution: Déplacé vers `GoogleSecrets.swift` (ignoré par Git)
 
 Le repository suit maintenant les meilleures pratiques de sécurité pour la gestion des secrets dans les applications iOS.
 
+**⚠️ IMPORTANT**: Les credentials Supabase ayant été exposés dans l'historique Git, il est impératif de les faire pivoter immédiatement.
+
 ---
 
-**Date de l'Audit**: 2026-01-19
+**Date de l'Audit**: 2026-01-19 (Mise à jour: 2026-02-09)
 **Auditeur**: GitHub Copilot Security Scan
