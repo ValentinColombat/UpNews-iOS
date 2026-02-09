@@ -48,33 +48,33 @@ class UserDataService: ObservableObject {
     
     // MARK: - Companion Check
     
-    /// Vérifie si l'utilisateur a sélectionné un compagnon
+    /// Vérifie si l'utilisateur a sélectionné un compagnon ET un pseudo
     func checkCompanion() async -> Bool {
         do {
             let session = try await SupabaseConfig.client.auth.session
             
             struct UserCompanion: Decodable {
                 let selected_companion_id: String?
+                let display_name: String?
             }
             
             let response = try await SupabaseConfig.client
                 .from("users")
-                .select("selected_companion_id")
+                .select("selected_companion_id, display_name")
                 .eq("id", value: session.user.id.uuidString)
                 .execute()
             
             let users = try JSONDecoder().decode([UserCompanion].self, from: response.data)
             
-            if let companion = users.first?.selected_companion_id, !companion.isEmpty {
-                print("✅ Compagnon trouvé: \(companion)")
+            if let user = users.first,
+               let companion = user.selected_companion_id, !companion.isEmpty,
+               let displayName = user.display_name, !displayName.isEmpty {
                 selectedCompanionId = companion
                 return true
             } else {
-                print("⚠️ Pas de compagnon sélectionné")
                 return false
             }
         } catch {
-            print("❌ Erreur vérification compagnon: \(error)")
             return false
         }
     }
@@ -100,8 +100,6 @@ class UserDataService: ObservableObject {
         // 4. Charge les stats d'articles
         articlesReadToday = try await fetchArticlesReadToday()
         articlesReadThisMonth = try await fetchArticlesReadThisMonth()
-        
-        print("✅ Toutes les données chargées")
     }
     
     /// Charge uniquement les articles et les stats (utilisé après loadUserProfile)
@@ -122,8 +120,6 @@ class UserDataService: ObservableObject {
         // 3. Charge les stats d'articles
         articlesReadToday = try await fetchArticlesReadToday()
         articlesReadThisMonth = try await fetchArticlesReadThisMonth()
-        
-        print("✅ Articles et stats chargés")
     }
     
     // MARK: - XP Management
@@ -144,15 +140,12 @@ class UserDataService: ObservableObject {
             .update(update)
             .eq("id", value: session.user.id.uuidString)
             .execute()
-        
-        print("💾 XP sauvegardé: \(currentXp) XP, Niveau \(currentLevel)")
     }
     
     // MARK: - Preferred Categories Management
     
     /// Sauvegarde les catégories préférées dans Supabase (sans recharger les articles)
     func savePreferredCategories(_ categories: [String]) async throws {
-        print("💾 UserDataService: savePreferredCategories() - Catégories: \(categories)")
         let session = try await SupabaseConfig.client.auth.session
         
         struct CategoryUpdate: Encodable {
@@ -169,8 +162,6 @@ class UserDataService: ObservableObject {
         
         // Mise à jour locale
         preferredCategories = categories
-        
-        print("✅ UserDataService: Catégories préférées sauvegardées: \(categories)")
     }
     
     /// Sauvegarde les catégories ET recharge les articles (utilisé depuis ProfileView)
@@ -179,19 +170,15 @@ class UserDataService: ObservableObject {
         
         // Recharger les articles avec les nouvelles préférences
         try await loadArticles()
-        
-        print("🔄 Articles rechargés avec nouvelles préférences")
     }
     
     // MARK: - Private Methods
     
     /// Charge les articles du jour depuis Supabase
     private func loadArticles() async throws {
-        print("📰 UserDataService: loadArticles() - Début")
         let fetchedArticles = try await ArticleService.shared.fetchTodayArticles()
         
         articles = fetchedArticles
-        print("📰 UserDataService: \(fetchedArticles.count) articles récupérés")
         
         // Obtenir la date du jour au format yyyy-MM-dd
         let formatter = DateFormatter()
@@ -204,18 +191,12 @@ class UserDataService: ObservableObject {
            savedDate == today {
             // Chercher l'article sauvegardé dans les articles récupérés
             if let savedArticle = fetchedArticles.first(where: { $0.id == savedArticleId }) {
-                print("📰 UserDataService: Article du jour déjà sélectionné: \(savedArticle.title)")
                 mainArticle = savedArticle
                 
                 // Articles secondaires : tous sauf le principal
                 secondaryArticles = Array(fetchedArticles.filter { $0.id != savedArticleId }.prefix(4))
-                print("📰 UserDataService: \(secondaryArticles.count) articles secondaires sélectionnés")
                 return
-            } else {
-                print("⚠️ UserDataService: Article sauvegardé introuvable, nouvelle sélection")
             }
-        } else {
-            print("📰 UserDataService: Pas d'article du jour ou date différente, nouvelle sélection")
         }
         
         // Nouvelle sélection d'article principal
@@ -226,19 +207,14 @@ class UserDataService: ObservableObject {
     private func selectNewMainArticle(from fetchedArticles: [Article], today: String) async throws {
         // Sélection intelligente du mainArticle basée sur les catégories préférées
         if !preferredCategories.isEmpty {
-            print("📰 UserDataService: Filtrage par catégories préférées: \(preferredCategories)")
-            
             // Filtrer les articles selon les catégories préférées
             let preferredArticles = fetchedArticles.filter { article in
                 preferredCategories.contains(article.category.lowercased())
             }
             
-            print("📰 UserDataService: \(preferredArticles.count) articles correspondent aux préférences")
-            
             if !preferredArticles.isEmpty {
                 // Sélection aléatoire parmi les articles préférés
                 mainArticle = preferredArticles.randomElement()
-                print("📰 UserDataService: Article principal sélectionné: \(mainArticle?.title ?? "none") - Catégorie: \(mainArticle?.category ?? "none")")
                 
                 // Sauvegarder la sélection
                 if let selectedArticle = mainArticle {
@@ -254,14 +230,11 @@ class UserDataService: ObservableObject {
                 // Prioriser les articles préférés, puis compléter avec d'autres
                 let combined = remainingPreferred + otherArticles
                 secondaryArticles = Array(combined.prefix(4))
-                print("📰 UserDataService: \(secondaryArticles.count) articles secondaires sélectionnés")
             } else {
-                print("⚠️ UserDataService: Aucun article ne correspond aux préférences, fallback")
                 // Fallback si aucun article préféré n'est disponible
                 try await fallbackArticleSelection(from: fetchedArticles, today: today)
             }
         } else {
-            print("⚠️ UserDataService: Pas de catégories préférées, fallback")
             // Fallback si pas de catégories préférées définies
             try await fallbackArticleSelection(from: fetchedArticles, today: today)
         }
@@ -302,13 +275,10 @@ class UserDataService: ObservableObject {
         // Mise à jour locale
         selectedMainArticleId = articleId
         selectedMainArticleDate = date
-        
-        print("✅ UserDataService: Article principal sauvegardé pour la journée")
     }
     
     /// Charge le profil utilisateur depuis Supabase
     func loadUserProfile() async throws {
-        print("📥 UserDataService: loadUserProfile() - Début")
         let session = try await SupabaseConfig.client.auth.session
         
         struct UserProfile: Decodable {
@@ -318,8 +288,8 @@ class UserDataService: ObservableObject {
             let max_xp: Int
             let current_level: Int
             let preferred_categories: [String]?
-            let selected_main_article_id: UUID? // ✅ NOUVEAU
-            let selected_main_article_date: String? // ✅ NOUVEAU
+            let selected_main_article_id: UUID?
+            let selected_main_article_date: String?
             let notification_time: String?
             let notification_bonus_claimed: Bool?
         }
@@ -347,18 +317,10 @@ class UserDataService: ObservableObject {
         maxXp = profile.max_xp
         currentLevel = profile.current_level
         preferredCategories = profile.preferred_categories ?? []
-        selectedMainArticleId = profile.selected_main_article_id // ✅ NOUVEAU
-        selectedMainArticleDate = profile.selected_main_article_date // ✅ NOUVEAU
+        selectedMainArticleId = profile.selected_main_article_id
+        selectedMainArticleDate = profile.selected_main_article_date
         notificationTime = profile.notification_time
         notificationBonusClaimed = profile.notification_bonus_claimed ?? false
-        
-        print("📥 UserDataService: Profil chargé:")
-        print("   - Nom: \(displayName)")
-        print("   - Compagnon: \(selectedCompanionId)")
-        print("   - Catégories: \(preferredCategories)")
-        print("   - Niveau: \(currentLevel), XP: \(currentXp)/\(maxXp)")
-        print("   - Article du jour: \(selectedMainArticleId?.uuidString ?? "none"), date: \(selectedMainArticleDate ?? "none")")
-        print("   - Notification: \(notificationTime ?? "none"), bonus: \(notificationBonusClaimed)")
     }
     
     // MARK: - Articles Stats
@@ -366,7 +328,6 @@ class UserDataService: ObservableObject {
     /// Compte le nombre d'articles lus aujourd'hui
     func fetchArticlesReadToday() async throws -> Int {
         guard let userId = currentUserId else {
-            print("❌ Pas d'userId")
             return 0
         }
         
@@ -395,7 +356,6 @@ class UserDataService: ObservableObject {
     /// Compte le nombre d'articles lus ce mois-ci
     func fetchArticlesReadThisMonth() async throws -> Int {
         guard let userId = currentUserId else {
-            print("❌ Pas d'userId")
             return 0
         }
         
@@ -427,7 +387,6 @@ class UserDataService: ObservableObject {
     
     /// Réinitialise toutes les données (utilisé lors de la déconnexion)
     func reset() {
-        print("🔄 UserData: Reset des données")
         displayName = ""
         currentStreak = 0
         selectedCompanionId = ""
@@ -440,8 +399,8 @@ class UserDataService: ObservableObject {
         articlesReadToday = 0
         articlesReadThisMonth = 0
         preferredCategories = []
-        selectedMainArticleId = nil // ✅ NOUVEAU
-        selectedMainArticleDate = nil // ✅ NOUVEAU
+        selectedMainArticleId = nil
+        selectedMainArticleDate = nil
         currentUserId = nil
         notificationTime = nil
         notificationBonusClaimed = false
@@ -452,7 +411,7 @@ class UserDataService: ObservableObject {
     /// Donne le bonus XP pour l'activation des notifications (+80 XP)
     func claimNotificationBonus() async throws {
         guard !notificationBonusClaimed else {
-            print("⚠️ Bonus notification déjà r��clamé")
+            
             return
         }
         
@@ -461,14 +420,11 @@ class UserDataService: ObservableObject {
         // Ajouter 80 XP
         currentXp += 80
         
-        // ✅ CORRECTION : maxXp reste TOUJOURS à 100
         // Vérifier si on passe de niveau(x)
         while currentXp >= 100 {
             currentXp -= 100
             currentLevel += 1
-            print("🎉 Niveau augmenté: \(currentLevel)")
         }
-        // maxXp = 100 (ne change jamais)
         
         // Marquer le bonus comme réclamé
         notificationBonusClaimed = true
@@ -491,8 +447,6 @@ class UserDataService: ObservableObject {
             .update(update)
             .eq("id", value: session.user.id.uuidString)
             .execute()
-        
-        print("✅ Bonus notification réclamé: +80 XP → Niveau \(currentLevel), \(currentXp)/100 XP")
     }
     
     /// Sauvegarde l'heure de notification (hybride: UserDefaults + Supabase)
@@ -515,8 +469,6 @@ class UserDataService: ObservableObject {
             .update(update)
             .eq("id", value: session.user.id.uuidString)
             .execute()
-        
-        print("✅ Heure de notification sauvegardée: \(time)")
     }
     
     /// Calcule le max XP pour un niveau donné

@@ -374,10 +374,8 @@ struct LibraryView: View {
             
             // Charger les articles likés de l'utilisateur
             await loadLikedArticles()
-            
-            print("\(articles.count) articles chargés depuis Supabase")
         } catch {
-            print(" Erreur chargement articles: \(error)")
+            print("Erreur chargement articles depuis Supabase: \(error)")
         }
         
         isLoading = false
@@ -403,9 +401,9 @@ struct LibraryView: View {
             
             likedArticles = Set(favorites.compactMap { UUID(uuidString: $0.article_id) })
             
-            print(" \(likedArticles.count) articles favoris chargés")
+            
         } catch {
-            print(" Erreur chargement favoris: \(error)")
+            print("Erreur chargement articles favoris: \(error)")
         }
     }
     
@@ -474,9 +472,9 @@ struct LibraryView: View {
                     .execute()
             }
             
-            print(" Favori mis à jour: \(!wasLiked)")
+           
         } catch {
-            print(" Erreur toggle favori: \(error)")
+            print("Erreur basculement favori article: \(error)")
             
             // Rollback en cas d'erreur
             withAnimation {

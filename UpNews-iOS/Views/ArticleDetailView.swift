@@ -35,6 +35,7 @@ struct ArticleDetailView: View {
     @State private var isFavorite = false
     @State private var hasClaimedXp = false
     @State private var hasMarkedAsRead = false
+    @State private var screenHeight: CGFloat = 600 // Valeur par défaut
     
     // Déblocage de nouveaux compagnons avec confettis
     @State private var showUnlockPopup = false
@@ -44,52 +45,53 @@ struct ArticleDetailView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack {
-            Color.upNewsBackground
-                .ignoresSafeArea()
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    heroSection
-                    
-                    VStack(alignment: .leading, spacing: 24) {
-                        headerSection
-                        audioPlayerSection
-                        contentWithImageSection
-                        sourceSection
+        GeometryReader { geometry in
+            ZStack {
+                Color.upNewsBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        heroSection
                         
-                        GeometryReader { geo in
-                            Color.clear
-                                .preference(
-                                    key: ViewOffsetKey.self,
-                                    value: geo.frame(in: .named("scroll")).minY
-                                )
+                        VStack(alignment: .leading, spacing: 24) {
+                            headerSection
+                            audioPlayerSection
+                            contentWithImageSection
+                            sourceSection
+                            
+                            GeometryReader { geo in
+                                Color.clear
+                                    .preference(
+                                        key: ViewOffsetKey.self,
+                                        value: geo.frame(in: .named("scroll")).minY
+                                    )
+                            }
+                            .frame(height: 1)
+                            
+                            pointsEarnedSection
+                            returnToHomeButton
+                            actionButtonsSection
                         }
-                        .frame(height: 1)
-                        
-                        pointsEarnedSection
-                        returnToHomeButton
-                        actionButtonsSection
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 40)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 40)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .coordinateSpace(name: "scroll")
-            .onPreferenceChange(ViewOffsetKey.self) { offset in
-                if offset < UIScreen.main.bounds.height / 2 && !hasMarkedAsRead {
-                    hasMarkedAsRead = true
-                    Task {
-                        do {
-                            try await markArticleAsRead()
-                            try await userDataService.loadAllData()
-                        } catch {
-                            print("❌ Erreur marquage article: \(error)")
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ViewOffsetKey.self) { offset in
+                    if offset < geometry.size.height / 2 && !hasMarkedAsRead {
+                        hasMarkedAsRead = true
+                        Task {
+                            do {
+                                try await markArticleAsRead()
+                                try await userDataService.loadAllData()
+                            } catch {
+                                print("Erreur lors du marquage comme lu ou rechargement des donnees: \(error.localizedDescription)")
+                            }
                         }
                     }
                 }
-            }
             .navigationBarHidden(true)
             .confettiCannon(
                 trigger: $confettiCounter,
@@ -106,6 +108,7 @@ struct ArticleDetailView: View {
             
             if showUnlockPopup {
                 unlockCompanionPopup
+            }
             }
         }
         .task {
@@ -696,7 +699,7 @@ struct ArticleDetailView: View {
                     }
                 }
                 
-                // ✅ CORRECTION : Button au lieu de NavigationLink
+                // Button au lieu de NavigationLink
                 Button {
                                     showUnlockPopup = false
                                     dismiss()  // Ferme l'ArticleDetailView
@@ -734,8 +737,7 @@ struct ArticleDetailView: View {
         do {
             let session = try await SupabaseConfig.client.auth.session
             
-            print("🔵 Chargement des interactions pour article: \(article.id.uuidString)")
-            
+                        
             let response = try await SupabaseConfig.client
                 .from("user_article_interactions")
                 .select("is_liked, is_favorite, is_read, has_claimed_xp")
@@ -746,21 +748,14 @@ struct ArticleDetailView: View {
             let interactions = try JSONDecoder().decode([ArticleInteraction].self, from: response.data)
             
             if let interaction = interactions.first {
-                print("✅ Interaction trouvée:")
-                print("   - is_liked: \(interaction.is_liked)")
-                print("   - is_favorite: \(interaction.is_favorite)")
-                print("   - is_read: \(interaction.is_read)")
-                print("   - has_claimed_xp: \(interaction.has_claimed_xp)")  // ← IMPORTANT
-                
+               
                 isLiked = interaction.is_liked
                 isFavorite = interaction.is_favorite
                 hasClaimedXp = interaction.has_claimed_xp
                 hasMarkedAsRead = interaction.is_read
-            } else {
-                print("⚠️ Aucune interaction trouvée pour cet article")
             }
         } catch {
-            print("❌ Erreur chargement interactions: \(error)")
+            print("Erreur lors du chargement des interactions: \(error.localizedDescription)")
         }
     }
     
@@ -851,7 +846,7 @@ struct ArticleDetailView: View {
                 }
             }
         } catch {
-            print("Erreur update interaction: \(error)")
+            print("Erreur lors de la mise a jour de l'interaction: \(error.localizedDescription)")
         }
     }
     
@@ -920,7 +915,7 @@ struct ArticleDetailView: View {
         do {
             let session = try await SupabaseConfig.client.auth.session
             
-            print("🔵 Début markXpAsClaimed pour article: \(article.id.uuidString)")
+            
             
             struct UpdateXpClaimed: Encodable {
                 let has_claimed_xp: Bool
@@ -935,9 +930,8 @@ struct ArticleDetailView: View {
                 .eq("article_id", value: article.id.uuidString)
                 .execute()
             
-            print("✅ XP marqué comme récupéré dans Supabase")
+            
         } catch {
-            print("❌ Erreur marquage XP claimed: \(error)")
             throw error
         }
     }
@@ -962,14 +956,14 @@ struct ArticleDetailView: View {
         Task {
             do {
                 try await userDataService.saveXpAndLevel()
-                try await markXpAsClaimed()  // ✅ Marquer le claim (pas la lecture)
-                try await markArticleAsRead() // ✅ S'assurer que l'article est aussi marqué comme lu
+                try await markXpAsClaimed()  // Marquer le claim (pas la lecture)
+                try await markArticleAsRead() // S'assurer que l'article est aussi marqué comme lu
                 
                 if didLevelUp {
                     checkUnlockedCompanions(newLevel: userDataService.currentLevel)
                 }
             } catch {
-                print("❌ Erreur sauvegarde XP: \(error)")
+                print("Erreur lors de la sauvegarde de l'XP apres claim manuel: \(error.localizedDescription)")
             }
         }
     }
@@ -1008,11 +1002,9 @@ struct ArticleDetailView: View {
     
     private func handleAudioCompletion() {
         guard !hasClaimedXp else {
-            print("⚠️ Points déjà récupérés")
             return
         }
         
-        print("🎉 Traitement de la fin de l'audio")
         
         hasMarkedAsRead = true
         
@@ -1028,27 +1020,27 @@ struct ArticleDetailView: View {
         
         hasClaimedXp = true
         
-        // ✅ NOUVEAU : Déclencher les confettis !
+        // Déclencher les confettis
         confettiTrigger += 1
         
         Task {
             do {
                 try await markArticleAsRead()
-                print("✅ Article marqué comme lu")
+                
                 
                 try await markXpAsClaimed()
-                print("✅ XP marqué comme récupéré")
+                
                 
                 try await userDataService.saveXpAndLevel()
-                print("✅ XP utilisateur sauvegardé")
                 
-                print("✅ Points récupérés et sauvegardés après écoute de l'audio")
+                
+                
                 
                 if didLevelUp {
                     checkUnlockedCompanions(newLevel: userDataService.currentLevel)
                 }
             } catch {
-                print("❌ Erreur sauvegarde XP après audio: \(error)")
+                print("Erreur lors de la sauvegarde de l'XP apres completion audio: \(error.localizedDescription)")
             }
         }
     }
@@ -1060,41 +1052,30 @@ struct ArticleDetailView: View {
     }
     
     private func configureAudioSession() {
-        print("🔵 Configuration de l'Audio Session")
-        
-        #if os(iOS)
+       
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playback, mode: .default, options: [])
             try audioSession.setActive(true, options: [])
-            print("✅ Audio Session configurée")
+            
         } catch {
-            print("❌ Erreur configuration Audio Session: \(error.localizedDescription)")
+            print("Erreur lors de la configuration de l'Audio Session: \(error.localizedDescription)")
         }
-        #else
-        // Sur macOS, pas besoin de configurer AVAudioSession
-        print("⚠️ Audio Session non configurée (macOS)")
-        #endif
+       
     }
 
     private func setupAudioPlayer() {
-        print("🔵 setupAudioPlayer() appelé")
-        
         guard audioPlayer == nil else {
-            print("⚠️ audioPlayer existe déjà, on skip")
             return
         }
         
-        print("🔵 article.audioUrl = \(article.audioUrl ?? "nil")")
+       
         
         guard let audioUrlString = article.audioUrl,
               let url = URL(string: audioUrlString) else {
-            print("❌ URL audio invalide ou nil")
             audioLoadFailed = true
             return
         }
-        
-        print("🎵 URL valide : \(url)")
         
         configureAudioSession()
         
@@ -1102,8 +1083,7 @@ struct ArticleDetailView: View {
         request.httpMethod = "HEAD"
         
         URLSession.shared.dataTask(with: request) { _, response, error in
-            if let error = error {
-                print("❌ Erreur réseau HEAD request : \(error.localizedDescription)")
+            if error != nil {
                 DispatchQueue.main.async {
                     self.audioLoadFailed = true
                     self.isLoadingAudio = false
@@ -1112,9 +1092,9 @@ struct ArticleDetailView: View {
             }
             
             if let httpResponse = response as? HTTPURLResponse {
-                print("✅ HEAD request status : \(httpResponse.statusCode)")
+              
                 if httpResponse.statusCode != 200 {
-                    print("❌ Le fichier n'est pas accessible (status \(httpResponse.statusCode))")
+                    
                     DispatchQueue.main.async {
                         self.audioLoadFailed = true
                         self.isLoadingAudio = false
@@ -1129,12 +1109,12 @@ struct ArticleDetailView: View {
         let playerItem = AVPlayerItem(url: url)
         audioPlayer = AVPlayer(playerItem: playerItem)
         
-        // ✅ NOUVEAU : Auto-play si demandé
+        // Auto-play si demandé
         if autoPlayAudio {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 if !self.audioLoadFailed && self.audioPlayer != nil {
                     self.togglePlayPause()
-                    print("▶️ Auto-play activé depuis le bouton Audio")
+                    
                 }
             }
         }
@@ -1149,23 +1129,28 @@ struct ArticleDetailView: View {
                 if self.audioDuration > 0 {
                     let progress = currentSeconds / self.audioDuration
                     if progress >= 0.95 && !self.hasClaimedXp && !self.hasMarkedAsRead {
-                        print("🎉 Audio terminé à 95%, récupération des points")
+                        
                         self.handleAudioCompletion()
                     }
                 }
             }
         }
         
-        playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
-            DispatchQueue.main.async {
-                let duration = playerItem.asset.duration
-                
-                if duration.isValid && !duration.isIndefinite {
-                    self.audioDuration = CMTimeGetSeconds(duration)
-                    print("✅ Audio duration set : \(self.audioDuration)s")
+        // Charger la durée de manière asynchrone (nouvelle API)
+        Task {
+            do {
+                let duration = try await playerItem.asset.load(.duration)
+                await MainActor.run {
+                    if duration.isValid && !duration.isIndefinite {
+                        self.audioDuration = CMTimeGetSeconds(duration)
+                    }
+                    self.isLoadingAudio = false
                 }
-                
-                self.isLoadingAudio = false
+            } catch {
+                print("Erreur lors du chargement de la duree de l'audio: \(error.localizedDescription)")
+                await MainActor.run {
+                    self.isLoadingAudio = false
+                }
             }
         }
         
@@ -1174,7 +1159,7 @@ struct ArticleDetailView: View {
             object: playerItem,
             queue: .main
         ) { _ in
-            print("🎉 Audio terminé naturellement")
+           
             if !self.hasClaimedXp {
                 self.handleAudioCompletion()
             }
@@ -1186,7 +1171,7 @@ struct ArticleDetailView: View {
             object: playerItem,
             queue: .main
         ) { notification in
-            print("❌ AVPlayerItemFailedToPlayToEndTime : \(notification)")
+           
             DispatchQueue.main.async {
                 self.audioLoadFailed = true
                 self.isLoadingAudio = false
@@ -1199,7 +1184,7 @@ struct ArticleDetailView: View {
             object: playerItem,
             queue: .main
         ) { notification in
-            print("❌ AVPlayerItemNewErrorLogEntry : \(notification)")
+            
             DispatchQueue.main.async {
                 self.audioLoadFailed = true
                 self.isLoadingAudio = false
@@ -1207,36 +1192,36 @@ struct ArticleDetailView: View {
         }
         playerItemObservers.append(errorObserver)
         
-        print("🔵 setupAudioPlayer() terminé")
+        
     }
 
     private func togglePlayPause() {
-        print("🔵 togglePlayPause() appelé, isPlaying = \(isPlaying)")
+       
         
         guard let player = audioPlayer else {
-            print("❌ audioPlayer est nil")
+            
             return
         }
         
         if isPlaying {
             player.pause()
             isPlaying = false
-            print("⏸️ Audio mis en pause")
+            
         } else {
             player.play()
             isPlaying = true
-            print("▶️ Audio en lecture")
+          
         }
     }
 
     private func changePlaybackSpeed(_ speed: Double) {
-        print("🔵 changePlaybackSpeed(\(speed)) appelé")
+       
         playbackSpeed = speed
         audioPlayer?.rate = Float(speed)
         
         if !isPlaying {
             audioPlayer?.pause()
-            print("⏸️ Resté en pause après changement de vitesse")
+           
         }
     }
 
@@ -1251,14 +1236,14 @@ struct ArticleDetailView: View {
     }
 
     private func cleanupAudioPlayer() {
-        print("🧹 cleanupAudioPlayer() appelé")
+        
         
         guard audioPlayer != nil else {
-            print("⚠️ Pas de player à cleanup")
+           
             return
         }
         
-        // ✅ Retirer l'observer de temps
+        // Retirer l'observer de temps
         if let observer = timeObserver {
             audioPlayer?.removeTimeObserver(observer)
             timeObserver = nil
@@ -1278,16 +1263,14 @@ struct ArticleDetailView: View {
         currentTime = 0
         
         // Désactiver l'AudioSession (iOS uniquement)
-        #if os(iOS)
+    
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-            print("✅ Audio Session désactivée")
+          
         } catch {
-            print("⚠️ Erreur désactivation Audio Session: \(error.localizedDescription)")
+            print("Erreur lors de la desactivation de l'Audio Session: \(error.localizedDescription)")
         }
-        #endif
-        
-        print("🧹 Cleanup terminé")
+       
     }
 }
 

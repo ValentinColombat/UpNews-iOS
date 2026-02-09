@@ -312,7 +312,7 @@ struct CompanionsView: View {
             updateEquippedCompanion()
             isLoading = false
         } catch {
-            print("❌ Erreur chargement données: \(error)")
+            print("Erreur chargement donnees utilisateur: \(error)")
         }
     }
     
@@ -401,9 +401,9 @@ struct CompanionsView: View {
             // Mettre à jour le UserDataService pour synchroniser partout
             userDataService.selectedCompanionId = companionId
             
-            print("✅ Compagnon sauvegardé: \(companionId)")
+            
         } catch {
-            print("❌ Erreur sauvegarde compagnon: \(error)")
+            print("Erreur sauvegarde compagnon selectionne: \(error)")
         }
     }
     
@@ -434,7 +434,7 @@ struct CompanionsView: View {
                 // Permission accordée → Donner le bonus XP
                 do {
                     try await userDataService.claimNotificationBonus()
-                    print("🎉 Bonus +80 XP réclamé !")
+                   
                     
                     let levelAfter = userDataService.currentLevel
                                     
@@ -462,7 +462,7 @@ struct CompanionsView: View {
                     await NotificationManager.shared.scheduleDailyNotification(at: "09:00")
                     try await userDataService.saveNotificationTime("09:00")
                 } catch {
-                    print("❌ Erreur bonus: \(error)")
+                    print("Erreur reclamation bonus notification: \(error)")
                 }
             } else {
                 // Permission refusée
@@ -475,7 +475,7 @@ struct CompanionsView: View {
     
     /// L'utilisateur a cliqué sur "Plus tard"
     private func handleNotificationLater() {
-        print("⏰ Utilisateur a choisi 'Plus tard'")
+       
     }
     
     // ✅ AJOUTÉ : Vérifie les compagnons débloqués
@@ -502,9 +502,9 @@ struct CompanionsView: View {
             unlockedCompanions = newlyUnlocked
             showUnlockPopup = true
             confettiCounter += 1
-            print("🎉 \(newlyUnlocked.count) nouveaux compagnons débloqués !")
+            
         } else {
-            print("ℹ️ Niveau augmenté mais aucun nouveau compagnon à ce palier")
+            
         }
     }
     

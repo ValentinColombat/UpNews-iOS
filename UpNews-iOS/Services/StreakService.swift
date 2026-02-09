@@ -88,20 +88,17 @@ class StreakService {
     private func calculateNewStreak(currentStreak: Int, lastConnectionDate: String?, today: String) -> Int {
         guard let lastDate = lastConnectionDate else {
             // Première connexion
-            print(" Première connexion !  Streak = 1")
             return 1
         }
         
         // Si déjà connecté aujourd'hui
         if lastDate == today {
-            print(" Déjà connecté aujourd'hui, streak = \(currentStreak)")
             return currentStreak
         }
         
         // Calculer la différence de jours
         guard let last = dateFormatter.date(from: lastDate),
               let current = dateFormatter.date(from: today) else {
-            print(" Erreur de parsing de date, reset streak")
             return 1
         }
         
@@ -111,17 +108,14 @@ class StreakService {
         case 1:
             // Connexion hier → Incrémenter
             let newStreak = currentStreak + 1
-            print(" Streak prolongé !  \(currentStreak) → \(newStreak)")
             return newStreak
             
         case 0:
             // Même jour (normalement déjà géré)
-            print(" Même jour, streak = \(currentStreak)")
             return currentStreak
             
         default:
             // Plus de 1 jour → Reset
-            print(" Streak perdu ! Reset à 1 (dernier :  \(lastDate), aujourd'hui : \(today))")
             return 1
         }
     }

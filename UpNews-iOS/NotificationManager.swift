@@ -29,10 +29,10 @@ class NotificationManager {
         
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            print(granted ? "✅ Permission accordée" : "❌ Permission refusée")
+            
             return granted
         } catch {
-            print("❌ Erreur permission: \(error)")
+            print("Erreur demande autorisation notifications: \(error)")
             return false
         }
     }
@@ -43,7 +43,7 @@ class NotificationManager {
     func scheduleDailyNotification(at time: String) async {
         // Format attendu: "09:00"
         guard let (hour, minute) = parseTime(time) else {
-            print("❌ Format d'heure invalide: \(time)")
+            
             return
         }
         
@@ -76,9 +76,9 @@ class NotificationManager {
         
         do {
             try await center.add(request)
-            print("✅ Notification programmée pour \(time) chaque jour")
+           
         } catch {
-            print("❌ Erreur programmation: \(error)")
+            print("Erreur programmation notification quotidienne: \(error)")
         }
     }
     
@@ -86,7 +86,7 @@ class NotificationManager {
     func cancelAllNotifications() {
         let center = UNUserNotificationCenter.current()
         center.removeAllPendingNotificationRequests()
-        print("🗑️ Notifications annulées")
+        
     }
     
     // MARK: - Helpers

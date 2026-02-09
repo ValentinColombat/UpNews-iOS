@@ -16,7 +16,6 @@ struct AuthView: View {
     @State private var isSignUpMode = false
     @State private var email = ""
     @State private var password = ""
-    @State private var username = ""
     @State private var showPassword = false
     
     // Pour réinitialiser l'onboarding
@@ -52,15 +51,6 @@ struct AuthView: View {
                     
                     // Form
                     VStack(spacing: 16) {
-                        
-                        // Username (uniquement pour l'inscription)
-                        if isSignUpMode {
-                            CustomTextField(
-                                icon: "person.fill",
-                                placeholder: "Nom d'utilisateur",
-                                text: $username
-                            )
-                        }
                         
                         // Email
                         CustomTextField(
@@ -186,13 +176,9 @@ struct AuthView: View {
     // MARK: - Computed Properties
     
     private var isFormValid: Bool {
-        if isSignUpMode {
-            return !email.isEmpty &&
-                   !password.isEmpty &&
-                   !username.isEmpty &&
-                   password.count >= 6
-        }
-        return !email.isEmpty && !password.isEmpty
+        return !email.isEmpty && 
+               !password.isEmpty && 
+               (isSignUpMode ? password.count >= 6 : true)
     }
     
     // MARK: - Functions
@@ -200,7 +186,7 @@ struct AuthView: View {
     private func handleAuthAction() {
         Task {
             if isSignUpMode {
-                await authService.signUp(email: email, password: password, username: username)
+                await authService.signUp(email: email, password: password)
             } else {
                 await authService.signIn(email: email, password: password)
             }
@@ -242,7 +228,7 @@ struct AuthView: View {
                 switch authError.code {
                 case .canceled:
                     // L'utilisateur a annulé, pas besoin d'afficher d'erreur
-                    print("🍎 Sign in with Apple annulé par l'utilisateur")
+                    break
                 case .unknown:
                     await MainActor.run {
                         authService.errorMessage = "Erreur inconnue lors de la connexion"

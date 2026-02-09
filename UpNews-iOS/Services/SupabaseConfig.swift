@@ -7,7 +7,12 @@ enum SupabaseConfig {
     
     static let client = SupabaseClient(
         supabaseURL:  url,
-        supabaseKey: anonKey
+        supabaseKey: anonKey,
+        options: SupabaseClientOptions(
+            auth: SupabaseClientOptions.AuthOptions(
+                emitLocalSessionAsInitialSession: true
+            )
+        )
     )
     
     static let redirectURL = URL(string: "upnews://login-callback")!

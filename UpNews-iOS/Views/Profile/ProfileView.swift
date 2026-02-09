@@ -435,7 +435,7 @@ struct ProfileView: View {
             let session = try await SupabaseConfig.client.auth.session
             userEmail = session.user.email ?? "email@example.com"
             
-            // ✅ SIMPLIFIÉ : Tout vient de UserDataService.loadAllData()
+            //  Tout vient de UserDataService.loadAllData()
             try await userDataService.loadAllData()
             
             // Charger l'heure de notification (hybride)
@@ -445,10 +445,10 @@ struct ProfileView: View {
                 notificationTime = localTime
             }
             
-            print("✅ Profil chargé: \(userDataService.articlesReadToday) articles aujourd'hui, \(userDataService.articlesReadThisMonth) ce mois")
+           
             
         } catch {
-            print("❌ Erreur chargement profil: \(error)")
+            print("Erreur dans le chargement des données\(error)")
         }
         
         isLoading = false
@@ -481,14 +481,14 @@ struct ProfileView: View {
                 // Permission accordée → Donner le bonus XP
                 do {
                     try await userDataService.claimNotificationBonus()
-                    print("🎉 Bonus +80 XP réclamé !")
+                   
                     
                     // Ouvrir le time picker
                     await MainActor.run {
                         showTimePicker = true
                     }
                 } catch {
-                    print("❌ Erreur bonus XP: \(error)")
+                print("Erreur bonus XP: \(error)")
                 }
             } else {
                 // Permission refusée → Montrer l'alert pour aller dans Réglages
@@ -504,7 +504,7 @@ struct ProfileView: View {
         // Sauvegarder la date pour masquer la carte pendant 3 jours
         let threeDaysLater = Calendar.current.date(byAdding: .day, value: 3, to: Date())!
         UserDefaults.standard.set(threeDaysLater, forKey: "notificationBoostHiddenUntil")
-        print("⏰ Carte notification masquée jusqu'au \(threeDaysLater)")
+       
     }
     
     /// Sauvegarde l'heure choisie et programme la notification
@@ -516,9 +516,9 @@ struct ProfileView: View {
             // Programmer la notification locale
             await NotificationManager.shared.scheduleDailyNotification(at: time)
             
-            print("✅ Notification programmée à \(time)")
+           
         } catch {
-            print("❌ Erreur sauvegarde heure: \(error)")
+            print("Erreur sauvegarde heure: \(error)")
         }
     }
     
@@ -541,7 +541,7 @@ struct ProfileView: View {
             let session = try await SupabaseConfig.client.auth.session
             let userId = session.user.id.uuidString
             
-            print("🗑️ Suppression du compte: \(userId)")
+            
             
             // 2. Supprimer le profil utilisateur
             //    Le trigger PostgreSQL supprimera automatiquement auth.users
@@ -552,7 +552,7 @@ struct ProfileView: View {
                 .eq("id", value: userId)
                 .execute()
             
-            print("✅ Profil supprimé (trigger + cascade actifs)")
+            
             
             // 3. Réinitialiser l'état local
             await MainActor.run {
@@ -562,10 +562,10 @@ struct ProfileView: View {
             // 4. Déconnexion
             await authService.signOut()
             
-            print("✅ Compte complètement supprimé")
+           
             
         } catch {
-            print("❌ Erreur suppression compte: \(error.localizedDescription)")
+            print("Erreur suppression compte: \(error.localizedDescription)")
             
             await MainActor.run {
                 deleteError = "Impossible de supprimer le compte : \(error.localizedDescription)"

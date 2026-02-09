@@ -15,6 +15,8 @@ struct CompanionSelectionView: View {
     @State private var selectedCompanionId: String?
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var displayName: String = ""
+    
     @StateObject private var authService = AuthService.shared
     
     // Callback quand la sélection est terminée
@@ -75,6 +77,44 @@ struct CompanionSelectionView: View {
                         }
                     }
                     . padding(.horizontal, 24)
+                    
+                    // Display Name Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Ton pseudo")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.upNewsBlack)
+                            Spacer()
+                            Text("\(displayName.count)/10")
+                                .font(.system(size: 14))
+                                .foregroundColor(displayName.count > 10 ? .red : .gray)
+                        }
+                        .padding(.horizontal, 24)
+                        
+                        TextField("Ex: Alex", text: $displayName)
+                            .textInputAutocapitalization(.words)
+                            .disableAutocorrection(true)
+                            .padding(14)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(color: Color.black.opacity(0.05), radius: 6, y: 2)
+                            .padding(.horizontal, 24)
+                            .onChange(of: displayName) { oldValue, newValue in
+                                // Limiter à 10 caractères
+                                if newValue.count > 10 {
+                                    displayName = String(newValue.prefix(10))
+                                }
+                            }
+                        
+                        // Message d'erreur si nécessaire
+                        if !displayNameErrorMessage.isEmpty {
+                            Text(displayNameErrorMessage)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 24)
+                        }
+                    }
+                    .padding(.top, 8)
                 }
                 
                 Spacer()
@@ -117,15 +157,33 @@ struct CompanionSelectionView: View {
                     }
                 }
                 .frame(width: 140, height: 50)
-                .background(selectedCompanionId != nil ? Color.upNewsPrimary : Color.gray)
+                .background(selectedCompanionId != nil && isDisplayNameValid ? Color.upNewsPrimary : Color.gray)
                 .cornerRadius(8)
-                .disabled(selectedCompanionId == nil || isLoading)
+                .disabled(selectedCompanionId == nil || !isDisplayNameValid || isLoading)
                 .padding(.bottom, 40)
             }
         }
     }
     
     // MARK: - Functions
+    
+    // Display name validation
+    private var isDisplayNameValid: Bool {
+        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.count >= 2 && trimmed.count <= 10
+    }
+    
+    private var displayNameErrorMessage: String {
+        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return ""
+        } else if trimmed.count < 2 {
+            return "Le pseudo doit contenir au moins 2 caractères"
+        } else if trimmed.count > 10 {
+            return "Le pseudo ne peut pas dépasser 10 caractères"
+        }
+        return ""
+    }
     
     private func confirmSelection() {
         guard let companionId = selectedCompanionId else { return }
@@ -138,11 +196,15 @@ struct CompanionSelectionView: View {
                 let session = try await SupabaseConfig.client.auth.session
                 
                 struct CompanionUpdate: Encodable {
+                    let display_name: String
                     let selected_companion_id: String
                 }
                 
+                let trimmedDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+                
                 let update = CompanionUpdate(
-                    selected_companion_id: companionId,
+                    display_name: trimmedDisplayName,
+                    selected_companion_id: companionId
                 )
                 
                 try await SupabaseConfig.client
@@ -227,10 +289,3 @@ struct CompanionSelectionView: View {
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    CompanionSelectionView {
-        print("Compagnon sélectionné !")
-    }
-}

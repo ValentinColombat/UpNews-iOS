@@ -30,9 +30,9 @@ struct UpNews_iOSApp: App {
                             await MainActor.run {
                                 AuthService.shared.isAuthenticated = true
                             }
-                            print("Connexion Google réussie")
+                            
                         } catch {
-                            print("Erreur callback Google: \(error)")
+                            print("Erreur session Supabase depuis URL: \(error)")
                         }
                     }
                 }
@@ -65,9 +65,9 @@ struct UpNews_iOSApp: App {
                 // Effacer aussi les notifications du centre de notifications
                 UNUserNotificationCenter.current().removeAllDeliveredNotifications()
                 
-                print("✅ Badge de notification effacé")
+                
             } catch {
-                print("❌ Erreur effacement badge: \(error)")
+                print("Erreur effacement badge notification: \(error)")
             }
         }
     }
