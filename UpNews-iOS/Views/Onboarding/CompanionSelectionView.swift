@@ -12,6 +12,7 @@ struct CompanionSelectionView: View {
     
     // MARK: - State
     
+    @State private var displayName: String = ""
     @State private var selectedCompanionId: String?
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -54,12 +55,21 @@ struct CompanionSelectionView: View {
                 
                 // Header
                 VStack(spacing: 24) {
-                    Text("Choisis ton\npremier\nCompagnon")
+                    Text("Choisis ton nom\net ton\nCompagnon")
                         .font(.system(size: 36, weight: .bold))
                         .multilineTextAlignment(.center)
                         .foregroundColor(.upNewsBlack)
                         .padding(.top, 60)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 20)
+                    
+                    // Display Name TextField
+                    CustomTextField(
+                        icon: "person.fill",
+                        placeholder: "Ton nom ou pseudo",
+                        text: $displayName
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 20)
                     
                     // Companions en ligne
                     HStack(spacing: 20) {
@@ -117,9 +127,9 @@ struct CompanionSelectionView: View {
                     }
                 }
                 .frame(width: 140, height: 50)
-                .background(selectedCompanionId != nil ? Color.upNewsPrimary : Color.gray)
+                .background((selectedCompanionId != nil && !displayName.isEmpty) ? Color.upNewsPrimary : Color.gray)
                 .cornerRadius(8)
-                .disabled(selectedCompanionId == nil || isLoading)
+                .disabled(selectedCompanionId == nil || displayName.isEmpty || isLoading)
                 .padding(.bottom, 40)
             }
         }
@@ -130,25 +140,26 @@ struct CompanionSelectionView: View {
     private func confirmSelection() {
         guard let companionId = selectedCompanionId else { return }
         
+        // Validate display name
+        let cleanDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanDisplayName.isEmpty, cleanDisplayName.count >= 2 else {
+            errorMessage = "Le nom doit contenir au moins 2 caractères"
+            return
+        }
+        
         isLoading = true
         errorMessage = nil
         
         Task {
             do {
-                let session = try await SupabaseConfig.client.auth.session
-                
-                struct CompanionUpdate: Encodable {
-                    let selected_companion_id: String
-                }
-                
-                let update = CompanionUpdate(
-                    selected_companion_id: companionId,
-                )
-                
+                // UPSERT both display_name and companion_id together
                 try await SupabaseConfig.client
                     .from("users")
-                    .update(update)
-                    .eq("id", value: session.user.id.uuidString)
+                    .upsert([
+                        "id": authService.currentUser?.id.uuidString,
+                        "display_name": cleanDisplayName,
+                        "companion_id": companionId
+                    ])
                     .execute()
                 
                 await MainActor.run {
@@ -224,6 +235,36 @@ struct CompanionSelectionView: View {
             .scaleEffect(isSelected ? 1.05 : 1.0)
             .animation(.spring(response: 0.3), value: isSelected)
         }
+    }
+}
+
+// MARK: - Custom TextField
+
+struct CustomTextField: View {
+    let icon: String
+    let placeholder: String
+    @Binding var text: String
+    var keyboardType: UIKeyboardType = .default
+    var autocapitalization: TextInputAutocapitalization = .sentences
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(.gray)
+                .frame(width: 20)
+            
+            TextField(placeholder, text: $text)
+                .keyboardType(keyboardType)
+                .textInputAutocapitalization(autocapitalization)
+                .autocorrectionDisabled()
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
     }
 }
 
