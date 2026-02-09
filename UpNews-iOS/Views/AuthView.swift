@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct AuthView: View {
     
@@ -148,6 +149,22 @@ struct AuthView: View {
                     
                     // Social Login
                     VStack(spacing: 12) {
+                        
+                        // Apple Sign In (✅ NATIF - Conforme aux guidelines)
+                        SignInWithAppleButton(
+                            onRequest: { request in
+                                request.requestedScopes = [.fullName, .email]
+                            },
+                            onCompletion: { result in
+                                Task {
+                                    await handleAppleSignIn(result: result)
+                                }
+                            }
+                        )
+                        .signInWithAppleButtonStyle(.black) // Style noir sur fond clair
+                        .frame(height: 50)
+                        .cornerRadius(12)
+                        
                         // Google Sign In
                         SocialLoginButton(
                             icon: "g.circle.fill",
@@ -159,29 +176,6 @@ struct AuthView: View {
                                 await authService.signInWithGoogle()
                             }
                         }
-                        
-                        // Apple Sign In (Désactivé pour le moment)
-                        SocialLoginButton(
-                            icon: "apple.logo",
-                            title: "Continuer avec Apple",
-                            backgroundColor: .black.opacity(0.3),
-                            foregroundColor: .white.opacity(0.5)
-                        ) {
-                            // Bientôt disponible
-                        }
-                        .disabled(true)
-                        .overlay(
-                            Text("Bientôt disponible")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 3)
-                                .background(Color.white)
-                                .cornerRadius(6)
-                                .offset(y: 15)
-                                .padding(6),
-                            alignment: .bottomTrailing
-                        )
                     }
                     .padding(.horizontal, 24)
                 }
@@ -209,6 +203,59 @@ struct AuthView: View {
                 await authService.signUp(email: email, password: password, username: username)
             } else {
                 await authService.signIn(email: email, password: password)
+            }
+        }
+    }
+    
+    /// Gère le résultat de Sign in with Apple
+    private func handleAppleSignIn(result: Result<ASAuthorization, Error>) async {
+        switch result {
+        case .success(let authorization):
+            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                // Extraire les informations
+                let userIdentifier = appleIDCredential.user
+                let email = appleIDCredential.email
+                let fullName = appleIDCredential.fullName
+                let identityToken = appleIDCredential.identityToken
+                
+                // Convertir le token en string
+                guard let tokenData = identityToken,
+                      let tokenString = String(data: tokenData, encoding: .utf8) else {
+                    await MainActor.run {
+                        authService.errorMessage = "Erreur lors de la récupération du token"
+                    }
+                    return
+                }
+                
+                // Appeler le service d'authentification
+                await authService.signInWithApple(
+                    userIdentifier: userIdentifier,
+                    email: email,
+                    fullName: fullName,
+                    identityToken: tokenString
+                )
+            }
+            
+        case .failure(let error):
+            // Gérer les erreurs
+            if let authError = error as? ASAuthorizationError {
+                switch authError.code {
+                case .canceled:
+                    // L'utilisateur a annulé, pas besoin d'afficher d'erreur
+                    print("🍎 Sign in with Apple annulé par l'utilisateur")
+                case .unknown:
+                    await MainActor.run {
+                        authService.errorMessage = "Erreur inconnue lors de la connexion"
+                    }
+                default:
+                    await MainActor.run {
+                        authService.errorMessage = "Erreur: \(error.localizedDescription)"
+                    }
+                }
+            } else {
+                await MainActor.run {
+                    authService.errorMessage = "Erreur: \(error.localizedDescription)"
+                }
             }
         }
     }

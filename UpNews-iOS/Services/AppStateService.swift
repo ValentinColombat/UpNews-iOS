@@ -45,8 +45,11 @@ class AppStateService:  ObservableObject {
         
         currentScreen = .loading
         
+        print("🔵 AppState: initialize() - hasCompletedOnboarding: \(hasCompletedOnboarding)")
+        
         // 1. Onboarding non terminé
         guard hasCompletedOnboarding else {
+            print("🔵 AppState: Onboarding pas terminé → onboarding")
             currentScreen = .onboarding
             return
         }
@@ -54,48 +57,64 @@ class AppStateService:  ObservableObject {
         // 2. Vérifier authentification
         await authService.checkAuthStatus()
         
+        print("🔵 AppState: isAuthenticated: \(authService.isAuthenticated)")
+        
         guard authService.isAuthenticated else {
+            print("🔵 AppState: Pas authentifié → auth")
             currentScreen = .auth
             return
         }
         
+        // ✅ À PARTIR D'ICI, l'utilisateur EST authentifié
+        
         // 3. Vérifier compagnon
+        print("🔵 AppState: Vérification compagnon...")
         let hasCompanion = await userDataService.checkCompanion()
         
+        print("🔵 AppState: hasCompanion: \(hasCompanion)")
+        
         guard hasCompanion else {
+            print("🔵 AppState: Pas de compagnon → companionSelection")
             currentScreen = .companionSelection
             return
         }
         
         // 4. Charger le profil pour vérifier les catégories
+        print("🔵 AppState: Chargement profil...")
         do {
             try await userDataService.loadUserProfile()
             
             // Vérifier si l'utilisateur a des catégories préférées
             guard !userDataService.preferredCategories.isEmpty else {
+                print("🔵 AppState: Pas de catégories → categorySelection")
                 currentScreen = .categorySelection
                 return
             }
             
             // 5. Charger le reste des données (articles, streak, stats)
+            print("🔵 AppState: Chargement articles et stats...")
             try await userDataService.loadArticlesAndStats()
             
+            print("🔵 AppState: Tout est prêt → main")
             currentScreen = .main
             
         } catch {
             print("❌ AppState: Erreur chargement données: \(error)")
-            currentScreen = .auth
+            // En cas d'erreur, on ne déconnecte pas, on va quand même à companion
+            currentScreen = .companionSelection
         }
     }
     
     /// Appelé après connexion (Email ou Google)
     func handleAuthentication() async {
-        
+        print("🟢 AppState: handleAuthentication() - Utilisateur connecté")
+        currentScreen = .loading
         
         // Petit délai pour stabiliser la session (surtout pour Google OAuth)
-        try?  await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
         
-        await initialize(hasCompletedOnboarding: true)
+        // Après connexion, toujours aller à la sélection de compagnon
+        currentScreen = .companionSelection
     }
     
     /// Appelé après sélection du compagnon

@@ -24,9 +24,8 @@ struct ContentView: View {
             case .onboarding:
                 OnboardingView {
                     hasCompletedOnboarding = true
-                    Task {
-                        await appState.initialize(hasCompletedOnboarding: true)
-                    }
+                    // Après l'onboarding, TOUJOURS aller à Auth
+                    appState.currentScreen = .auth
                 }
                 
             case .auth:
