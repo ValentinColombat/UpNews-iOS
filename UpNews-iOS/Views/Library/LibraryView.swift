@@ -58,7 +58,7 @@ struct LibraryView: View {
             case .science: return .upNewsBlueMid
             case .culture: return .purple
             case .social: return .upNewsBlueLight
-            case .health: return .red // ✅ AJOUT
+            case .health: return .red 
             }
         }
     }

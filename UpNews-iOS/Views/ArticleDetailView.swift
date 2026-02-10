@@ -107,7 +107,19 @@ struct ArticleDetailView: View {
             )
             
             if showUnlockPopup {
-                unlockCompanionPopup
+                UnlockCompanionPopup(
+                    companions: unlockedCompanions,
+                    onDismiss: {
+                        showUnlockPopup = false
+                    },
+                    onNavigateToCompanions: {
+                        showUnlockPopup = false
+                        dismiss()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            selectedTab = 1
+                        }
+                    }
+                )
             }
             }
         }
@@ -642,95 +654,6 @@ struct ArticleDetailView: View {
         }
     }
     
-    // MARK: - Unlock Companion Popup
-
-    private var unlockCompanionPopup: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 24) {
-                // Croix rouge pour fermer (en haut à droite)
-                HStack {
-                    Spacer()
-                    Button {
-                        showUnlockPopup = false
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 32, height: 32)
-                            
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                    }
-                }
-                .padding(.bottom, -8)
-                
-                VStack(spacing: 8) {
-                    Text("🎉")
-                        .font(.system(size: 60))
-                    
-                    Text("Nouveaux compagnons débloqués !")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.upNewsBlack)
-                        .multilineTextAlignment(.center)
-                }
-                
-                VStack(spacing: 16) {
-                    ForEach(unlockedCompanions, id: \.name) { companion in
-                        HStack(spacing: 16) {
-                            Image(companion.imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                            
-                            Text(companion.name)
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.upNewsBlack)
-                            
-                            Spacer()
-                        }
-                        .padding(16)
-                        .background(Color.upNewsBlueMid.opacity(0.1))
-                        .cornerRadius(16)
-                    }
-                }
-                
-                // Button au lieu de NavigationLink
-                Button {
-                                    showUnlockPopup = false
-                                    dismiss()  // Ferme l'ArticleDetailView
-                                    
-                                    // Change vers le tab Compagnons après un court délai
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        selectedTab = 1
-                                    }
-                                } label: {
-                                    Text("Super !")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background(
-                                            LinearGradient(
-                                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.8)],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .cornerRadius(16)
-                }
-            }
-            .padding(24)
-            .background(Color.white)
-            .cornerRadius(24)
-            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
-            .padding(.horizontal, 40)
-        }
-    }
     // MARK: - Helper Functions
     
     private func loadArticleInteractions() async {
@@ -972,7 +895,12 @@ struct ArticleDetailView: View {
     private func checkUnlockedCompanions(newLevel: Int) {
         let companionsByLevel: [Int: [(name: String, imageName: String)]] = [
             2: [("Brume", "brume"), ("Flocon", "flocon")],
+            3: [("Vera", "vera")],
+            4: [("Jura", "jura")],
             5: [("Caramel", "caramel"), ("Écorce", "ecorce"), ("Luciole", "luciole")],
+            6: [("Olga", "olga")],
+            7: [("Luka", "luka")],
+            8: [("Nina", "nina")],
             10: [("Mochi", "mochi"), ("Sève", "seve")],
             15: [("Pépite", "pepite")],
             20: [("Noisette", "noisette")]

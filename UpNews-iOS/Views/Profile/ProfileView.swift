@@ -409,14 +409,10 @@ struct ProfileView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.white)
                     
-                    Text("ESSAI GRATUIT")
+                    Text("BETA GRATUITE")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
                         .tracking(1)
-                    
-                    Text("Encore 30 jours")
-                        .font(.system(size: 30, weight: .heavy))
-                        .foregroundColor(.white)
                     
                     Text("Profitez de toutes les fonctionnalités")
                         .font(.system(size: 14, weight: .medium))
@@ -797,7 +793,7 @@ struct CategoryPreferencesSheet: View {
                             if let error = errorMessage {
                                 Text(error)
                                     .font(.caption)
-                                    .foregroundColor(.red)
+                                    .foregroundColor(.gray)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal)
                             }

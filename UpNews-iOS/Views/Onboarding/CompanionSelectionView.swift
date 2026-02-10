@@ -48,119 +48,192 @@ struct CompanionSelectionView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack {
-            Color.upNewsBackground
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
+        GeometryReader { geometry in
+            ZStack {
+                Color.upNewsBackground
+                    .ignoresSafeArea()
                 
-                // Header
-                VStack(spacing: 24) {
-                    Text("Choisis ton\npremier\nCompagnon")
-                        .font(.system(size: 36, weight: .bold))
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.upNewsBlack)
-                        .padding(.top, 60)
-                        .padding(.bottom, 40)
-                    
-                    // Companions en ligne
-                    HStack(spacing: 20) {
-                        ForEach(companions) { companion in
-                            CompanionCard(
-                                companion: companion,
-                                isSelected: selectedCompanionId == companion.id
-                            ) {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                    selectedCompanionId = companion.id
+                ScrollView {
+                    VStack(spacing: 26) {
+                        
+                        // Header moderne
+                        VStack(spacing: 16) {
+                            // Titre avec style moderne
+                            VStack(spacing: 8) {
+                                Text("Choisis ton premier")
+                                    .font(.system(size: 28, weight: .semibold))
+                                    .foregroundColor(.upNewsBlack.opacity(0.7))
+                                
+                                Text("Compagnon")
+                                    .font(.system(size: 42, weight: .bold))
+                                    .foregroundColor(.upNewsBlack)
+                            }
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 40)
+                            
+                            // Sous-titre
+                            Text("Il t'accompagnera dans ta lecture quotidienne")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundColor(.upNewsBlack.opacity(0.6))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
+                        .padding(.bottom, 8)
+                        
+                        // Companions cards
+                        HStack(spacing: 8) {
+                            ForEach(companions) { companion in
+                                CompanionCard(
+                                    companion: companion,
+                                    isSelected: selectedCompanionId == companion.id
+                                ) {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                        selectedCompanionId = companion.id
+                                    }
                                 }
                             }
                         }
-                    }
-                    . padding(.horizontal, 24)
-                    
-                    // Display Name Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
+                        .padding(.horizontal, 20)
+                        
+                        // Display Name Field centré
+                        VStack(spacing: 16) {
                             Text("Ton pseudo")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.upNewsBlack)
-                            Spacer()
-                            Text("\(displayName.count)/10")
-                                .font(.system(size: 14))
-                                .foregroundColor(displayName.count > 10 ? .red : .gray)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            
+                            VStack(spacing: 8) {
+                                TextField("Ex: Alex", text: $displayName)
+                                    .textInputAutocapitalization(.words)
+                                    .disableAutocorrection(true)
+                                    .font(.system(size: 17))
+                                    .padding(16)
+                                    .background(Color.white)
+                                    .cornerRadius(16)
+                                    .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(
+                                                isDisplayNameValid && !displayName.isEmpty
+                                                ? Color.upNewsPrimary.opacity(0.4)
+                                                : Color.clear,
+                                                lineWidth: 2
+                                            )
+                                    )
+                                    .onChange(of: displayName) { oldValue, newValue in
+                                        if newValue.count > 10 {
+                                            displayName = String(newValue.prefix(10))
+                                        }
+                                    }
+                                
+                                // Compteur de caractères
+                                Text("\(displayName.count)/10")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(displayName.count > 10 ? .red : Color.upNewsBlack.opacity(0.4))
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                
+                                // Message d'erreur ou validation
+                                if !displayNameErrorMessage.isEmpty {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "exclamationmark.circle.fill")
+                                            .font(.system(size: 14))
+                                        Text(displayNameErrorMessage)
+                                            .font(.system(size: 14))
+                                    }
+                                    .foregroundColor(.gray)
+                                    .transition(.opacity)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                } else if isDisplayNameValid {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 14))
+                                        Text("Parfait !")
+                                            .font(.system(size: 14))
+                                    }
+                                    .foregroundColor(.upNewsPrimary)
+                                    .transition(.opacity)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
                         }
                         .padding(.horizontal, 24)
                         
-                        TextField("Ex: Alex", text: $displayName)
-                            .textInputAutocapitalization(.words)
-                            .disableAutocorrection(true)
-                            .padding(14)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.05), radius: 6, y: 2)
+                        // Info box moderne
+                        VStack(spacing: 12) {
+                            
+                            Text("Chaque jour, des milliers d'événements positifs se produisent dans le monde. Nous les trouvons pour vous.")
+                                .font(.system(size: 15, weight: .regular))
+                                .foregroundColor(.upNewsBlack.opacity(0.8))
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(4)
+                            
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 32))
+                                .foregroundColor(.upNewsPrimary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 28)
+                        .padding(.horizontal, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.upNewsPrimary.opacity(0.08))
+                        )
+                        .padding(.horizontal, 24)
+                        
+                        // Error Message
+                        if let error = errorMessage {
+                            HStack(spacing: 8) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 16))
+                                Text(error)
+                                    .font(.system(size: 14))
+                            }
+                            .foregroundColor(.gray)
                             .padding(.horizontal, 24)
-                            .onChange(of: displayName) { oldValue, newValue in
-                                // Limiter à 10 caractères
-                                if newValue.count > 10 {
-                                    displayName = String(newValue.prefix(10))
+                            .multilineTextAlignment(.center)
+                        }
+                        
+                        // Confirm Button moderne
+                        Button(action: confirmSelection) {
+                            HStack(spacing: 12) {
+                                if isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Text("Commencer l'aventure")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    
+                                    Image(systemName: "arrow.right")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
                                 }
                             }
-                        
-                        // Message d'erreur si nécessaire
-                        if !displayNameErrorMessage.isEmpty {
-                            Text(displayNameErrorMessage)
-                                .font(.caption)
-                                .foregroundColor(.red)
-                                .padding(.horizontal, 24)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(selectedCompanionId != nil && isDisplayNameValid
+                                          ? Color.upNewsPrimary
+                                          : Color.gray.opacity(0.4))
+                            )
+                            .shadow(
+                                color: (selectedCompanionId != nil && isDisplayNameValid
+                                        ? Color.upNewsPrimary.opacity(0.3)
+                                        : Color.clear),
+                                radius: 12,
+                                x: 0,
+                                y: 6
+                            )
                         }
+                        .disabled(selectedCompanionId == nil || !isDisplayNameValid || isLoading)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        .padding(.bottom, 40)
                     }
-                    .padding(.top, 8)
+                    .frame(width: geometry.size.width)
                 }
-                
-                Spacer()
-                
-                // Info box
-                VStack(spacing: 16) {
-                    Text("Chaque jour, des milliers d'événements positifs se produisent dans le monde.  Nous les trouvons pour vous.")
-                        .font(. body)
-                        .foregroundColor(.upNewsBlack)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                        .padding(.vertical, 40)
-                }
-                .frame(maxWidth: .infinity)
-                .background(Color.upNewsGreen.opacity(0.05))
-                .cornerRadius(16)
-                .padding(.horizontal, 24)
-                
-                Spacer()
-                
-                // Error Message
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                        .padding(.bottom, 8)
-                }
-                
-                // Confirm Button
-                Button(action: confirmSelection) {
-                    if isLoading {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Text("SUIVANT")
-                            .font(.system(size: 16, weight:  .bold))
-                            .foregroundColor(.white)
-                    }
-                }
-                .frame(width: 140, height: 50)
-                .background(selectedCompanionId != nil && isDisplayNameValid ? Color.upNewsPrimary : Color.gray)
-                .cornerRadius(8)
-                .disabled(selectedCompanionId == nil || !isDisplayNameValid || isLoading)
-                .padding(.bottom, 40)
+                .scrollIndicators(.hidden)
             }
         }
     }
@@ -239,52 +312,62 @@ struct CompanionSelectionView: View {
     // MARK: - Companion Card
     
     struct CompanionCard: View {
-        let companion:  Companion
-        let isSelected:  Bool
-        let onTap:  () -> Void
+        let companion: Companion
+        let isSelected: Bool
+        let onTap: () -> Void
         
         var body: some View {
             Button(action: onTap) {
-                VStack(spacing:  0) {
+                VStack(spacing: 8) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.gray.opacity(0.15))
+                        // Background avec effet de profondeur
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(
+                                LinearGradient(
+                                    colors: isSelected
+                                    ? [Color.upNewsPrimary.opacity(0.15), Color.upNewsPrimary.opacity(0.08)]
+                                    : [Color.gray.opacity(0.08), Color.gray.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                             .frame(width: 100, height: 140)
                         
-                        Image(companion.imageName)
-                            .resizable()
-                            .scaledToFit()
-                            .blur(radius: 30)
-                            .opacity(1)
-                            .offset(y: -5)
-                            .offset(x: -5)
+                        // Border pour la sélection
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                isSelected ? Color.upNewsPrimary : Color.clear,
+                                lineWidth: 3
+                            )
+                            .frame(width: 100, height: 140)
                         
-                        Image(companion.imageName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90, height: 130)
+                        // Image avec ombre
+                        VStack {
+                            Image(companion.imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 120)
+                                .shadow(
+                                    color: isSelected
+                                    ? Color.upNewsPrimary.opacity(0.3)
+                                    : Color.black.opacity(0.1),
+                                    radius: isSelected ? 12 : 6,
+                                    x: 0,
+                                    y: 4
+                                )
+                        }
                     }
                     
-                    RoundedRectangle(cornerRadius: 4)
-                        . fill(isSelected ? companion.color : Color.gray.opacity(0.3))
-                        .frame(width: 60, height:  8)
-                        .padding(.top, 12)
-                    
-                    if isSelected {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.upNewsBlack)
-                            .padding(.top, 8)
-                    } else {
-                        Color.clear
-                            . frame(height: 28)
-                            .padding(.top, 8)
-                    }
+                    // Nom du compagnon
+                    Text(companion.name)
+                        .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                        .foregroundColor(isSelected ? .upNewsBlack : .upNewsBlack.opacity(0.6))
                 }
+                .padding(6)
             }
             .buttonStyle(.plain)
             .scaleEffect(isSelected ? 1.05 : 1.0)
-            .animation(.spring(response: 0.3), value: isSelected)
+            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
         }
     }
 }

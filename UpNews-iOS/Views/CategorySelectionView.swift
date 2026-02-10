@@ -78,7 +78,7 @@ struct CategorySelectionView: View {
                         if let error = errorMessage {
                             Text(error)
                                 .font(.caption)
-                                .foregroundColor(.red)
+                                .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }

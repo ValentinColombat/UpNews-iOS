@@ -42,21 +42,38 @@ struct CompanionsView: View {
         CompanionCharacter(id: "cannelle", name: "Cannelle", imageName: "cannelle", emoji: nil, unlockLevel: 1, isUnlocked: true, isEquipped: false),
         CompanionCharacter(id: "givre_et_plume", name: "Givre et Plume", imageName: "givre_et_plume", emoji: nil, unlockLevel: 1, isUnlocked: true, isEquipped: false),
         
-        // Niveau 2 (Premier palier)
+        // Niveau 2
         CompanionCharacter(id: "brume", name: "Brume", imageName: "brume", emoji: nil, unlockLevel: 2, isUnlocked: false, isEquipped: false),
         CompanionCharacter(id: "flocon", name: "Flocon", imageName: "flocon", emoji: nil, unlockLevel: 2, isUnlocked: false, isEquipped: false),
         
-        // Niveau 10 (Palier intermédiaire)
+        // Niveau 3
+        CompanionCharacter(id: "vera", name: "Vera", imageName: "vera", emoji: nil, unlockLevel: 3, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 4
+        CompanionCharacter(id: "jura", name: "Jura", imageName: "jura", emoji: nil, unlockLevel: 4, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 5
         CompanionCharacter(id: "caramel", name: "Caramel", imageName: "caramel", emoji: nil, unlockLevel: 5, isUnlocked: false, isEquipped: false),
         CompanionCharacter(id: "ecorce", name: "Écorce", imageName: "ecorce", emoji: nil, unlockLevel: 5, isUnlocked: false, isEquipped: false),
         CompanionCharacter(id: "luciole", name: "Luciole", imageName: "luciole", emoji: nil, unlockLevel: 5, isUnlocked: false, isEquipped: false),
         
-        // Niveau 15 (Avant-dernier palier)
+        // Niveau 6
+        CompanionCharacter(id: "olga", name: "Olga", imageName: "olga", emoji: nil, unlockLevel: 6, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 7
+        CompanionCharacter(id: "luka", name: "Luka", imageName: "luka", emoji: nil, unlockLevel: 7, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 8
+        CompanionCharacter(id: "nina", name: "Nina", imageName: "nina", emoji: nil, unlockLevel: 8, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 10
         CompanionCharacter(id: "mochi", name: "Mochi", imageName: "mochi", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
         CompanionCharacter(id: "seve", name: "Sève", imageName: "seve", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
         
-        // Niveau 15-20 (Palier finaux actuel)
+        // Niveau 15
         CompanionCharacter(id: "pepite", name: "Pépite", imageName: "pepite", emoji: nil, unlockLevel: 15, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 20
         CompanionCharacter(id: "noisette", name: "Noisette", imageName: "noisette", emoji: nil, unlockLevel: 20, isUnlocked: false, isEquipped: false)
     ]
     
@@ -120,7 +137,13 @@ struct CompanionsView: View {
             // ✅ AJOUTÉ : Overlay pour la popup de déblocage
             .overlay {
                 if showUnlockPopup {
-                    unlockCompanionPopup
+                    UnlockCompanionPopup(
+                        companions: unlockedCompanions,
+                        onDismiss: {
+                            showUnlockPopup = false
+                        },
+                        onNavigateToCompanions: nil // On est déjà sur la page Compagnons
+                    )
                 }
             }
             // ✅ AJOUTÉ : Confettis
@@ -482,7 +505,12 @@ struct CompanionsView: View {
     private func checkUnlockedCompanions(oldLevel: Int, newLevel: Int) {
         let companionsByLevel: [Int: [(name: String, imageName: String)]] = [
             2: [("Brume", "brume"), ("Flocon", "flocon")],
+            3: [("Vera", "vera")],
+            4: [("Jura", "jura")],
             5: [("Caramel", "caramel"), ("Écorce", "ecorce"), ("Luciole", "luciole")],
+            6: [("Olga", "olga")],
+            7: [("Luka", "luka")],
+            8: [("Nina", "nina")],
             10: [("Mochi", "mochi"), ("Sève", "seve")],
             15: [("Pépite", "pepite")],
             20: [("Noisette", "noisette")]
@@ -505,89 +533,6 @@ struct CompanionsView: View {
             
         } else {
             
-        }
-    }
-    
-    // ✅ AJOUTÉ : Popup de déblocage
-    private var unlockCompanionPopup: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 24) {
-                // Croix pour fermer
-                HStack {
-                    Spacer()
-                    Button {
-                        showUnlockPopup = false
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 32, height: 32)
-                            
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                    }
-                }
-                .padding(.bottom, -8)
-                
-                VStack(spacing: 8) {
-                    Text("🎉")
-                        .font(.system(size: 60))
-                    
-                    Text("Nouveaux compagnons débloqués !")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.upNewsBlack)
-                        .multilineTextAlignment(.center)
-                }
-                
-                VStack(spacing: 16) {
-                    ForEach(unlockedCompanions, id: \.name) { companion in
-                        HStack(spacing: 16) {
-                            Image(companion.imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                            
-                            Text(companion.name)
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.upNewsBlack)
-                            
-                            Spacer()
-                        }
-                        .padding(16)
-                        .background(Color.upNewsBlueMid.opacity(0.1))
-                        .cornerRadius(16)
-                    }
-                }
-                
-                // Bouton "Super !"
-                Button {
-                    showUnlockPopup = false
-                } label: {
-                    Text("Super !")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.8)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(16)
-                }
-            }
-            .padding(24)
-            .background(Color.white)
-            .cornerRadius(24)
-            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
-            .padding(.horizontal, 40)
         }
     }
 }

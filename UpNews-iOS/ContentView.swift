@@ -38,7 +38,7 @@ struct ContentView: View {
                     }
                 }
             
-            case .categorySelection: // ✅ NOUVEAU
+            case .categorySelection: 
                 CategorySelectionView {
                     Task {
                         await appState.handleCategoriesSelected()

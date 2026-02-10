@@ -58,21 +58,26 @@ struct HomeFeedView: View {
             VStack(spacing: 0) {
                 // Header avec les 2 pastilles
                 HStack(alignment: .top) {
-                    // Pastille gauche - Streak
-                    VStack(spacing: 4) {
-                        Circle()
-                            .fill(Color.white.opacity(0.9))
-                            .frame(width: 50, height: 50)
-                            .overlay(
-                                FlameLottieView()
-                            )
-                        
-                        Text("\(userDataService.currentStreak) jour\(userDataService.currentStreak > 1 ? "s" : "")")
-                            . font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    // Pastille gauche - Streak (cliquable)
+                    Button {
+                        selectedTab = 3 // Redirection vers Profile
+                    } label: {
+                        VStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.white.opacity(0.9))
+                                .frame(width: 50, height: 50)
+                                .overlay(
+                                    FlameLottieView()
+                                )
+                            
+                            Text("\(userDataService.currentStreak) jour\(userDataService.currentStreak > 1 ? "s" : "")")
+                                . font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        }
+                        . offset(y: 15)
                     }
-                    . offset(y: 15)
+                    .buttonStyle(.plain)
                     
                     Spacer()
                     
@@ -91,23 +96,28 @@ struct HomeFeedView: View {
                     
                     Spacer()
                     
-                    // Pastille droite - Niveau DYNAMIQUE
-                    VStack(spacing: 4) {
-                        Circle()
-                            .fill(Color.white.opacity(0.9))
-                            .frame(width: 50, height: 50)
-                            .overlay(
-                                Image(systemName: "sunrise.fill")
-                                    . foregroundColor(.upNewsOrange)
-                                    .font(.system(size: 24))
-                            )
-                        
-                        Text("Niv.  \(userDataService.currentLevel)")
-                            .font(.system(size: 14, weight:  .bold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
+                    // Pastille droite - Niveau DYNAMIQUE (cliquable)
+                    Button {
+                        selectedTab = 3 // Redirection vers Profile
+                    } label: {
+                        VStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.white.opacity(0.9))
+                                .frame(width: 50, height: 50)
+                                .overlay(
+                                    Image(systemName: "sunrise.fill")
+                                        . foregroundColor(.upNewsOrange)
+                                        .font(.system(size: 24))
+                                )
+                            
+                            Text("Niv.  \(userDataService.currentLevel)")
+                                .font(.system(size: 14, weight:  .bold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
+                        }
+                        . offset(y: 15)
                     }
-                    . offset(y: 15)
+                    .buttonStyle(.plain)
                 }
                 . padding(.horizontal, 30)
                 .padding(.top, 60)
@@ -115,36 +125,41 @@ struct HomeFeedView: View {
                 Spacer()
                 
                 ZStack {
-                    // Compagnon centré
-                    if !userDataService.selectedCompanionId.isEmpty {
-                        ZStack {
-                            
-                            Image(userDataService.selectedCompanionId)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 300)
-                                .blur(radius: 30)
-                                .opacity(0.6)
-                                .offset(x: 5, y: -10)
-                            
-                            
-                            Image(userDataService.selectedCompanionId)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 280)
+                    // Compagnon centré (cliquable)
+                    Button {
+                        selectedTab = 1 // Redirection vers Compagnons
+                    } label: {
+                        if !userDataService.selectedCompanionId.isEmpty {
+                            ZStack {
+                                
+                                Image(userDataService.selectedCompanionId)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 300)
+                                    .blur(radius: 30)
+                                    .opacity(0.6)
+                                    .offset(x: 5, y: -10)
+                                
+                                
+                                Image(userDataService.selectedCompanionId)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 280)
+                            }
+                        } else {
+                            VStack(spacing: 12) {
+                                Image(systemName: "pawprint.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.white.opacity(0.5))
+                                
+                                Text("Aucun compagnon")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                            .frame(height: 280)
                         }
-                    } else {
-                        VStack(spacing: 12) {
-                            Image(systemName: "pawprint.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(.white.opacity(0.5))
-                            
-                            Text("Aucun compagnon")
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .frame(height: 280)
                     }
+                    .buttonStyle(.plain)
                     
                     // Barre XP à droite DYNAMIQUE
                     HStack {
@@ -154,6 +169,7 @@ struct HomeFeedView: View {
                             .padding(.bottom, 20)
                             .padding(.trailing, 50)
                     }
+                    .allowsHitTesting(false) // La barre XP ne bloque pas le clic sur le compagnon
                 }
                 .frame(height: 280)
                 
@@ -211,66 +227,28 @@ struct HomeFeedView: View {
     // MARK:  - Main Article Card
     
     private func mainArticleCard(_ article: Article) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Badge catégorie avec style Liquid Glass
-            CategoryTagView(article: article)
-            
-            // Titre
-            Text(article.title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.upNewsBlack)
-                .lineLimit(3)
-            
-            // Description
-            Text(article.contentPreview)
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
-                .lineLimit(3)
-            
-            // Boutons Lire / Audio (Style Liquid Glass coloré)
-            HStack(spacing: 12) {
-                // Bouton Lire (Orange Liquid Glass)
-                NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false,selectedTab :$selectedTab)) {
-                    Label("Lire", systemImage: "book.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(
-                            ZStack {
-                                // Fond glassmorphique
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial)
-                                
-                                // Teinte colorée
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.upNewsOrange)
-                                
-                                // Reflet lumineux en haut
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.white.opacity(0.5),
-                                                Color.white.opacity(0)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .center
-                                        )
-                                    )
-                                
-                                // Bordure brillante
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                            }
-                        )
-                        .shadow(color: Color.upNewsOrange.opacity(0.2), radius: 8, x: 0, y: 4)
-                }
+        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false, selectedTab: $selectedTab)) {
+            VStack(alignment: .leading, spacing: 16) {
+                // Badge catégorie avec style Liquid Glass
+                CategoryTagView(article: article)
                 
-                // Bouton Audio (Vert Liquid Glass)
-                if article.audioUrl != nil {
-                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: true,selectedTab :$selectedTab)) {
-                        Label("Audio", systemImage: "headphones")
+                // Titre
+                Text(article.title)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.upNewsBlack)
+                    .lineLimit(3)
+                
+                // Description
+                Text(article.contentPreview)
+                    .font(.system(size: 15))
+                    .foregroundColor(.secondary)
+                    .lineLimit(3)
+                
+                // Boutons Lire / Audio (Style Liquid Glass coloré)
+                HStack(spacing: 12) {
+                    // Bouton Lire (Orange Liquid Glass)
+                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false,selectedTab :$selectedTab)) {
+                        Label("Lire", systemImage: "book.fill")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -283,7 +261,7 @@ struct HomeFeedView: View {
                                     
                                     // Teinte colorée
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.upNewsBlueMid)
+                                        .fill(Color.upNewsOrange)
                                     
                                     // Reflet lumineux en haut
                                     RoundedRectangle(cornerRadius: 12)
@@ -303,15 +281,16 @@ struct HomeFeedView: View {
                                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                                 }
                             )
-                            .shadow(color: Color.upNewsBlueMid.opacity(0.2), radius: 8, x: 0, y: 4)
+                            .shadow(color: Color.upNewsOrange.opacity(0.2), radius: 8, x: 0, y: 4)
                     }
-                } else {
-                    // Bouton Audio désactivé (Gris Liquid Glass)
-                    Button(action: {}) {
-                        ZStack(alignment: .topTrailing) {
+                    .simultaneousGesture(TapGesture()) // Permet au bouton de capturer le tap
+                    
+                    // Bouton Audio (Vert Liquid Glass)
+                    if article.audioUrl != nil {
+                        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: true,selectedTab :$selectedTab)) {
                             Label("Audio", systemImage: "headphones")
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.gray.opacity(0.6))
+                                .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 48)
                                 .background(
@@ -320,42 +299,85 @@ struct HomeFeedView: View {
                                         RoundedRectangle(cornerRadius: 12)
                                             .fill(.ultraThinMaterial)
                                         
-                                        // Teinte grisée
+                                        // Teinte colorée
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.gray.opacity(0.05))
+                                            .fill(Color.upNewsBlueMid)
                                         
-                                        // Bordure subtile
+                                        // Reflet lumineux en haut
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [
+                                                        Color.white.opacity(0.5),
+                                                        Color.white.opacity(0)
+                                                    ],
+                                                    startPoint: .top,
+                                                    endPoint: .center
+                                                )
+                                            )
+                                        
+                                        // Bordure brillante
                                         RoundedRectangle(cornerRadius: 12)
                                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                                     }
                                 )
-                            
-                            // Badge "indisponible"
-                            Image(systemName: "speaker.slash.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.gray.opacity(0.7))
-                                .padding(5)
-                                .background(
-                                    Circle()
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                                .offset(x: -6, y: 6)
+                                .shadow(color: Color.upNewsBlueMid.opacity(0.2), radius: 8, x: 0, y: 4)
                         }
+                        .simultaneousGesture(TapGesture()) // Permet au bouton de capturer le tap
+                    } else {
+                        // Bouton Audio désactivé (Gris Liquid Glass)
+                        Button(action: {}) {
+                            ZStack(alignment: .topTrailing) {
+                                Label("Audio", systemImage: "headphones")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.gray.opacity(0.6))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 48)
+                                    .background(
+                                        ZStack {
+                                            // Fond glassmorphique
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(.ultraThinMaterial)
+                                            
+                                            // Teinte grisée
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.gray.opacity(0.05))
+                                            
+                                            // Bordure subtile
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                        }
+                                    )
+                                
+                                // Badge "indisponible"
+                                Image(systemName: "speaker.slash.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.gray.opacity(0.7))
+                                    .padding(5)
+                                    .background(
+                                        Circle()
+                                            .fill(.ultraThinMaterial)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                            )
+                                    )
+                                    .offset(x: -6, y: 6)
+                            }
+                        }
+                        .disabled(true)
+                        .allowsHitTesting(false) // Empêche le bouton désactivé d'intercepter les taps
                     }
-                    .disabled(true)
                 }
             }
-        }
             .padding(20)
             .background(Color.white)
             .cornerRadius(16)
             .padding(.horizontal, 20)
             .shadow(radius: 1, x: 0, y: 2)
         }
+        .buttonStyle(.plain) // Évite le style de lien par défaut
+    }
         
         // MARK: - Secondary Articles Section
         

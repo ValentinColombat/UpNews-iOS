@@ -78,7 +78,7 @@ struct AuthView: View {
                         if let error = authService.errorMessage {
                             Text(error)
                                 .font(.caption)
-                                .foregroundColor(.red)
+                                .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }

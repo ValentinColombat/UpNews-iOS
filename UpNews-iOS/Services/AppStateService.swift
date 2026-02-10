@@ -30,7 +30,7 @@ class AppStateService:  ObservableObject {
         case onboarding
         case auth
         case companionSelection
-        case categorySelection // ✅ NOUVEAU
+        case categorySelection 
         case main
     }
     
@@ -59,7 +59,7 @@ class AppStateService:  ObservableObject {
             return
         }
         
-        // ✅ À PARTIR D'ICI, l'utilisateur EST authentifié
+        // Utilisateur EST authentifié
         
         // 3. Vérifier compagnon
         let hasCompanion = await userDataService.checkCompanion()
