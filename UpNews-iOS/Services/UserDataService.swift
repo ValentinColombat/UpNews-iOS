@@ -7,6 +7,7 @@
 import SwiftUI
 import Supabase
 import Combine
+import WidgetKit
 
 @MainActor
 class UserDataService: ObservableObject {
@@ -100,6 +101,9 @@ class UserDataService: ObservableObject {
         // 4. Charge les stats d'articles
         articlesReadToday = try await fetchArticlesReadToday()
         articlesReadThisMonth = try await fetchArticlesReadThisMonth()
+        
+        // 5. Synchroniser avec le widget
+        syncToWidget()
     }
     
     /// Charge uniquement les articles et les stats (utilisé après loadUserProfile)
@@ -120,6 +124,9 @@ class UserDataService: ObservableObject {
         // 3. Charge les stats d'articles
         articlesReadToday = try await fetchArticlesReadToday()
         articlesReadThisMonth = try await fetchArticlesReadThisMonth()
+        
+        // 4. Synchroniser avec le widget
+        syncToWidget()
     }
     
     // MARK: - XP Management
@@ -474,5 +481,45 @@ class UserDataService: ObservableObject {
     /// Calcule le max XP pour un niveau donné
     private func calculateMaxXp(for level: Int) -> Int {
         return 100 + (level - 1) * 50
+    }
+    
+    // MARK: - Widget Synchronization
+    
+    /// Synchronise les données avec le widget
+    func syncToWidget() {
+        // Détermine si l'utilisateur a lu aujourd'hui
+        let hasReadToday = mainArticle == nil // Si pas d'article principal, c'est qu'il a lu
+        
+        WidgetDataManager.shared.updateWidgetData(
+            companionName: getCompanionDisplayName(selectedCompanionId),
+            companionImage: selectedCompanionId,
+            currentStreak: currentStreak,
+            hasReadToday: hasReadToday,
+            articlesCount: secondaryArticles.count
+        )
+    }
+    
+    /// Helper pour avoir le nom d'affichage du compagnon
+    private func getCompanionDisplayName(_ id: String) -> String {
+        let names: [String: String] = [
+            "mousse": "Mousse",
+            "cannelle": "Cannelle",
+            "givre_et_plume": "Givre & Plume",
+            "brume": "Brume",
+            "flocon": "Flocon",
+            "vera": "Vera",
+            "jura": "Jura",
+            "caramel": "Caramel",
+            "ecorce": "Écorce",
+            "luciole": "Luciole",
+            "olga": "Olga",
+            "luka": "Luka",
+            "nina": "Nina",
+            "mochi": "Mochi",
+            "seve": "Sève",
+            "pepite": "Pépite",
+            "noisette": "Noisette"
+        ]
+        return names[id] ?? "Compagnon"
     }
 }

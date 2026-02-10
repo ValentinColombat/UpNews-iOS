@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		15076A182F3B309700C8506D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15076A172F3B309700C8506D /* WidgetKit.framework */; };
+		15076A1A2F3B309700C8506D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15076A192F3B309700C8506D /* SwiftUI.framework */; };
+		15076A292F3B309900C8506D /* UpNewsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 15076A162F3B309700C8506D /* UpNewsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1588C7572EF94F7500551A36 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1588C7562EF94F7500551A36 /* Auth */; };
 		1588C7592EF94F8500551A36 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 1588C7582EF94F8500551A36 /* GoogleSignIn */; };
 		1588C75B2EF94F8900551A36 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1588C75A2EF94F8900551A36 /* GoogleSignInSwift */; };
@@ -18,6 +21,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		15076A272F3B309900C8506D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15C90B742EED7865003728A0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 15076A152F3B309700C8506D;
+			remoteInfo = UpNewsWidgetExtension;
+		};
 		15C90B8A2EED7867003728A0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 15C90B742EED7865003728A0 /* Project object */;
@@ -35,6 +45,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		15076A2E2F3B309900C8506D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				15076A292F3B309900C8506D /* UpNewsWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		158F91DD2F1CE2DD00AD81AA /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -48,12 +69,30 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		15076A162F3B309700C8506D /* UpNewsWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = UpNewsWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		15076A172F3B309700C8506D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		15076A192F3B309700C8506D /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		15076A342F3B325600C8506D /* UpNewsWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UpNewsWidgetExtension.entitlements; sourceTree = "<group>"; };
 		15C2F4042EEEF4F000A1F346 /* UpNews-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "UpNews-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		15076A2D2F3B309900C8506D /* Exceptions for "UpNewsWidget" folder in "UpNewsWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 15076A152F3B309700C8506D /* UpNewsWidgetExtension */;
+		};
+		15076A332F3B318200C8506D /* Exceptions for "UpNews-iOS" folder in "UpNewsWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+			target = 15076A152F3B309700C8506D /* UpNewsWidgetExtension */;
+		};
 		154CC0E42EF5939300A734ED /* Exceptions for "UpNews-iOS" folder in "UpNews-iOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -66,10 +105,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		15076A1B2F3B309700C8506D /* UpNewsWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				15076A2D2F3B309900C8506D /* Exceptions for "UpNewsWidget" folder in "UpNewsWidgetExtension" target */,
+			);
+			path = UpNewsWidget;
+			sourceTree = "<group>";
+		};
 		15C90B7E2EED7865003728A0 /* UpNews-iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				154CC0E42EF5939300A734ED /* Exceptions for "UpNews-iOS" folder in "UpNews-iOS" target */,
+				15076A332F3B318200C8506D /* Exceptions for "UpNews-iOS" folder in "UpNewsWidgetExtension" target */,
 			);
 			path = "UpNews-iOS";
 			sourceTree = "<group>";
@@ -87,6 +135,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		15076A132F3B309700C8506D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				15076A1A2F3B309700C8506D /* SwiftUI.framework in Frameworks */,
+				15076A182F3B309700C8506D /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		15C90B792EED7865003728A0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -122,6 +179,8 @@
 		1588C7552EF94F7500551A36 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				15076A172F3B309700C8506D /* WidgetKit.framework */,
+				15076A192F3B309700C8506D /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -129,19 +188,44 @@
 		15C90B732EED7865003728A0 = {
 			isa = PBXGroup;
 			children = (
+				15076A342F3B325600C8506D /* UpNewsWidgetExtension.entitlements */,
 				15C90B7E2EED7865003728A0 /* UpNews-iOS */,
 				15C90B8C2EED7867003728A0 /* UpNews-iOSTests */,
 				15C90B962EED7867003728A0 /* UpNews-iOSUITests */,
 				15C2F4042EEEF4F000A1F346 /* UpNews-iOS.app */,
 				15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */,
 				15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */,
+				15076A1B2F3B309700C8506D /* UpNewsWidget */,
 				1588C7552EF94F7500551A36 /* Frameworks */,
+				15076A162F3B309700C8506D /* UpNewsWidgetExtension.appex */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		15076A152F3B309700C8506D /* UpNewsWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15076A2A2F3B309900C8506D /* Build configuration list for PBXNativeTarget "UpNewsWidgetExtension" */;
+			buildPhases = (
+				15076A122F3B309700C8506D /* Sources */,
+				15076A132F3B309700C8506D /* Frameworks */,
+				15076A142F3B309700C8506D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				15076A1B2F3B309700C8506D /* UpNewsWidget */,
+			);
+			name = UpNewsWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = UpNewsWidgetExtension;
+			productReference = 15076A162F3B309700C8506D /* UpNewsWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		15C90B7B2EED7865003728A0 /* UpNews-iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 15C90B9D2EED7867003728A0 /* Build configuration list for PBXNativeTarget "UpNews-iOS" */;
@@ -150,10 +234,12 @@
 				15C90B792EED7865003728A0 /* Frameworks */,
 				15C90B7A2EED7865003728A0 /* Resources */,
 				158F91DD2F1CE2DD00AD81AA /* Embed Frameworks */,
+				15076A2E2F3B309900C8506D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				15076A282F3B309900C8506D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				15C90B7E2EED7865003728A0 /* UpNews-iOS */,
@@ -226,9 +312,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2610;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					15076A152F3B309700C8506D = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					15C90B7B2EED7865003728A0 = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
@@ -266,11 +355,19 @@
 				15C90B7B2EED7865003728A0 /* UpNews-iOS */,
 				15C90B882EED7867003728A0 /* UpNews-iOSTests */,
 				15C90B922EED7867003728A0 /* UpNews-iOSUITests */,
+				15076A152F3B309700C8506D /* UpNewsWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		15076A142F3B309700C8506D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		15C90B7A2EED7865003728A0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -295,6 +392,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		15076A122F3B309700C8506D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		15C90B782EED7865003728A0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -319,6 +423,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		15076A282F3B309900C8506D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 15076A152F3B309700C8506D /* UpNewsWidgetExtension */;
+			targetProxy = 15076A272F3B309900C8506D /* PBXContainerItemProxy */;
+		};
 		15C90B8B2EED7867003728A0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 15C90B7B2EED7865003728A0 /* UpNews-iOS */;
@@ -332,6 +441,73 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		15076A2B2F3B309900C8506D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = UpNewsWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25433VGSHH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UpNewsWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = UpNewsWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOS.UpNewsWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		15076A2C2F3B309900C8506D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = UpNewsWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25433VGSHH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UpNewsWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = UpNewsWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.valentin.UpNews-iOS.UpNewsWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		15C90B9B2EED7867003728A0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -647,6 +823,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		15076A2A2F3B309900C8506D /* Build configuration list for PBXNativeTarget "UpNewsWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15076A2B2F3B309900C8506D /* Debug */,
+				15076A2C2F3B309900C8506D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		15C90B772EED7865003728A0 /* Build configuration list for PBXProject "UpNews-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
