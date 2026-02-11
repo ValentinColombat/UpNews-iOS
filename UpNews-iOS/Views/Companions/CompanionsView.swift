@@ -424,9 +424,6 @@ struct CompanionsView: View {
             // Mettre à jour le UserDataService pour synchroniser partout
             userDataService.selectedCompanionId = companionId
             
-            // Synchroniser avec le widget
-            userDataService.syncToWidget()
-            
         } catch {
             print("Erreur sauvegarde compagnon selectionne: \(error)")
         }

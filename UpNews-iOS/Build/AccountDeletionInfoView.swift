@@ -148,7 +148,7 @@ struct AccountDeletionInfoView: View {
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                         
-                        Link("support@upnews.app", destination: URL(string: "mailto:support@upnews.app")!)
+                        Link("support@upnews.app", destination: URL(string: "mailto:valentincolombat@gmail.com")!)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.upNewsGreen)
                     }

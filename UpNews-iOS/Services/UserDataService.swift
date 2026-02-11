@@ -103,7 +103,7 @@ class UserDataService: ObservableObject {
         articlesReadThisMonth = try await fetchArticlesReadThisMonth()
         
         // 5. Synchroniser avec le widget
-        syncToWidget()
+        await syncToWidget()
     }
     
     /// Charge uniquement les articles et les stats (utilisé après loadUserProfile)
@@ -126,7 +126,7 @@ class UserDataService: ObservableObject {
         articlesReadThisMonth = try await fetchArticlesReadThisMonth()
         
         // 4. Synchroniser avec le widget
-        syncToWidget()
+        await syncToWidget()
     }
     
     // MARK: - XP Management
@@ -208,6 +208,39 @@ class UserDataService: ObservableObject {
         
         // Nouvelle sélection d'article principal
         try await selectNewMainArticle(from: fetchedArticles, today: today)
+    }
+    
+    /// Vérifie si l'article principal a été lu aujourd'hui
+    private func checkIfMainArticleReadToday() async throws -> Bool {
+        guard let userId = currentUserId,
+              let mainArticleId = selectedMainArticleId else {
+            return false
+        }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        
+        let formatter = ISO8601DateFormatter()
+        let todayString = formatter.string(from: today)
+        let tomorrowString = formatter.string(from: tomorrow)
+        
+        let response = try await SupabaseConfig.client
+            .from("user_article_interactions")
+            .select("id")
+            .eq("user_id", value: userId)
+            .eq("article_id", value: mainArticleId.uuidString)
+            .eq("is_read", value: true)
+            .gte("read_at", value: todayString)
+            .lt("read_at", value: tomorrowString)
+            .execute()
+        
+        struct Interaction: Decodable {
+            let id: UUID
+        }
+        
+        let interactions = try JSONDecoder().decode([Interaction].self, from: response.data)
+        return !interactions.isEmpty
     }
     
     /// Sélectionne et sauvegarde un nouvel article principal
@@ -486,9 +519,9 @@ class UserDataService: ObservableObject {
     // MARK: - Widget Synchronization
     
     /// Synchronise les données avec le widget
-    func syncToWidget() {
-        // Détermine si l'utilisateur a lu aujourd'hui
-        let hasReadToday = mainArticle == nil // Si pas d'article principal, c'est qu'il a lu
+    func syncToWidget() async {
+        // Vérifier si l'article principal a été lu aujourd'hui
+        let hasReadToday = (try? await checkIfMainArticleReadToday()) ?? false
         
         WidgetDataManager.shared.updateWidgetData(
             companionName: getCompanionDisplayName(selectedCompanionId),
