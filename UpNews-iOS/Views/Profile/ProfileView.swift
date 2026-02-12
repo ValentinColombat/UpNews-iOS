@@ -332,7 +332,7 @@ struct ProfileView: View {
                             .foregroundColor(.upNewsOrange)
                             .frame(width: 28)
                         
-                        Text("Se déconnecter")
+                        Text("Se déconnexter")
                             .font(.system(size: 16))
                             .foregroundColor(.upNewsOrange)
                         
@@ -343,22 +343,54 @@ struct ProfileView: View {
                 }
             }
             
-            // Texte d'information discret (cliquable)
-            Button(action: {
-                showAccountDeletionInfo = true
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
-                    
-                    Text("En savoir plus sur la suppression de compte")
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
+            // Liens d'information (politique de confidentialité et suppression de compte)
+            VStack(alignment: .leading, spacing: 0) {
+                // Lien vers la politique de confidentialité
+                Link(destination: URL(string: "https://valentincolombat.github.io/upnews-privacy/")!) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "hand.raised.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Politique de confidentialité")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                        
+                        Image(systemName: "arrow.up.forward")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 8)
                 }
-                .padding(.horizontal, 4)
+                
+                // Ligne de séparation discrète
+                Divider()
+                    .background(Color.secondary.opacity(0.2))
+                    .padding(.leading, 23)
+                
+                // Texte d'information discret (cliquable)
+                Button(action: {
+                    showAccountDeletionInfo = true
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                        
+                        Text("En savoir plus sur la suppression de compte")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 8)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
             
             // Bouton de suppression de compte (séparé visuellement)
             SettingsGroup {

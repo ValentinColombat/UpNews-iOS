@@ -93,6 +93,7 @@ struct HomeFeedView: View {
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y:  2)
                     }
+                    .offset(y: UIDevice.current.userInterfaceIdiom == .pad ? 25 : 0)
                     
                     Spacer()
                     
