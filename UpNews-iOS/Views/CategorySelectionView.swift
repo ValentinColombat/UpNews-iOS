@@ -214,18 +214,21 @@ struct CategoryCard: View {
                 Text(category.name)
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.upNewsBlack)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 // Description
                 Text(category.description)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .frame(height: 32)
+                    .lineLimit(3)
+                    .frame(height: 45)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(16)
             .frame(maxWidth: .infinity)
-            .frame(height: 180)
+            .frame(height: 200)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color.white)

@@ -332,7 +332,7 @@ struct ProfileView: View {
                             .foregroundColor(.upNewsOrange)
                             .frame(width: 28)
                         
-                        Text("Se déconnexter")
+                        Text("Se déconnecter")
                             .font(.system(size: 16))
                             .foregroundColor(.upNewsOrange)
                         
@@ -971,18 +971,22 @@ struct CompactCategoryCard: View {
                 Text(category.name)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(.upNewsBlack)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 // Description
                 Text(category.description)
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .frame(height: 28)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 8)
             .frame(maxWidth: .infinity)
-            .frame(height: 160)
+            .frame(height: 170)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white)

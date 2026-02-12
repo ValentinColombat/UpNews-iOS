@@ -45,18 +45,14 @@ struct Article: Identifiable, Codable, Hashable {
     
     var categoryIcon: String {
         switch category.lowercased() {
-        case "ecology", "ecologie", "écologie":
+        case "ecologie", "écologie":
             return "leaf.fill"
-        case "tech", "technologie":
-            return "cpu.fill"
-        case "social":
-            return "heart.fill"
-        case "culture":
-            return "theatermasks.fill"
-        case "science":
-            return "flask.fill"
-        case "health", "santé", "sante":
+        case "santé", "sante":
             return "cross.case.fill"
+        case "sciences-et-tech":
+            return "flask.fill"
+        case "social-et-culture":
+            return "theatermasks.fill"
         default:
             return "newspaper.fill"
         }
@@ -64,20 +60,32 @@ struct Article: Identifiable, Codable, Hashable {
     
     var categoryColor: Color {
         switch category.lowercased() {
-        case "ecology", "ecologie", "écologie":
-            return .categoryEcology      // 6CC241 - Vert vif
-        case "tech", "technologie":
-            return .categoryTech         // 689EB1 - Bleu
-        case "social":
-            return .categorySocial       // FE813C - Orange
-        case "culture":
-            return .categoryCulture      // C4C1F2 - Violet clair
-        case "science":
-            return .categoryScience      // FEE155 - Jaune
-        case "health", "santé", "sante":
-            return .categoryHealth       // F9E1E1 - Rose clair
+        case "ecologie", "écologie":
+            return .categoryEcology      // Vert vif
+        case "santé", "sante":
+            return .categoryHealth       // Rose clair
+        case "sciences-et-tech":
+            return .categoryTech         // Bleu
+        case "social-et-culture":
+            return .categoryCulture      // Violet clair
         default:
-            return .categoryDefault      // 2C3E35 - Gris foncé
+            return .categoryDefault      // Gris foncé
+        }
+    }
+    
+    /// Nom formaté de la catégorie pour l'affichage (avec "&" au lieu de "-et-")
+    var categoryDisplayName: String {
+        switch category.lowercased() {
+        case "ecologie", "écologie":
+            return "Écologie"
+        case "santé", "sante":
+            return "Santé"
+        case "sciences-et-tech":
+            return "Sciences & Tech"
+        case "social-et-culture":
+            return "Social & Culture"
+        default:
+            return category.capitalized
         }
     }
     

@@ -20,33 +20,27 @@ struct LibraryView: View {
     enum CategoryFilter: String, CaseIterable {
         case all = "Tous"
         case ecology = "Écologie"
-        case technology = "Tech"
-        case science = "Science"
-        case culture = "Culture"
-        case social = "Social"
-        case health = "Santé" // ✅ AJOUT
+        case health = "Santé"
+        case scienceTech = "Sciences & Tech"
+        case socialCulture = "Social & Culture"
         
         var icon: String {
             switch self {
             case .all: return "list.bullet"
             case .ecology: return "leaf.fill"
-            case .technology: return "lightbulb.fill"
-            case .science: return "flask.fill"
-            case .culture: return "paintpalette.fill"
-            case .social: return "person.3.fill"
-            case .health: return "cross.case.fill" // ✅ AJOUT
+            case .health: return "cross.case.fill"
+            case .scienceTech: return "flask.fill"
+            case .socialCulture: return "theatermasks.fill"
             }
         }
         
         var categoryKey: String? {
             switch self {
             case .all: return nil
-            case .ecology: return "ecologie" // ✅ CHANGÉ (sans accent)
-            case .technology: return "tech" // ✅ CHANGÉ
-            case .science: return "science"
-            case .culture: return "culture"
-            case .social: return "social"
-            case .health: return "santé" // ✅ AJOUT
+            case .ecology: return "ecologie"
+            case .health: return "santé"
+            case .scienceTech: return "sciences-et-tech"
+            case .socialCulture: return "social-et-culture"
             }
         }
         
@@ -54,11 +48,9 @@ struct LibraryView: View {
             switch self {
             case .all: return .gray
             case .ecology: return .upNewsGreen
-            case .technology: return .upNewsOrange
-            case .science: return .upNewsBlueMid
-            case .culture: return .purple
-            case .social: return .upNewsBlueLight
-            case .health: return .red 
+            case .health: return .red
+            case .scienceTech: return .upNewsBlueMid
+            case .socialCulture: return .purple
             }
         }
     }
@@ -312,7 +304,7 @@ struct LibraryView: View {
                 
                 // Contenu
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(article.category.capitalized)
+                    Text(article.categoryDisplayName)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     

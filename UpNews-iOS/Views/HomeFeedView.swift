@@ -414,7 +414,7 @@ struct HomeFeedView: View {
                 CategoryIconBadge(article: article)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(article.category.capitalized)
+                    Text(article.categoryDisplayName)
                         . font(.caption)
                         .foregroundColor(.secondary)
                     

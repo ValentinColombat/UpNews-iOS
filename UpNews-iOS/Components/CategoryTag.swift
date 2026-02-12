@@ -17,7 +17,7 @@ struct CategoryTagView: View {
                 .foregroundStyle(
                     .white.shadow(.drop(color: .gray.opacity(0.5), radius: 3, x: 0, y: 0))
                 )
-            Text(article.category.capitalized)
+            Text(article.categoryDisplayName)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(
                     .white.shadow(.drop(color: .gray.opacity(0.5), radius: 3, x: 0, y: 0))

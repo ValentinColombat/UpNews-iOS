@@ -29,39 +29,25 @@ extension CategoryItem {
             description: "Environnement, nature et biodiversité"
         ),
         CategoryItem(
-            id: "tech",
-            name: "Tech",
-            icon: "cpu.fill",
-            color: .categoryTech,
-            description: "Innovations et nouvelles technologies"
-        ),
-        CategoryItem(
-            id: "science",
-            name: "Science",
-            icon: "flask.fill",
-            color: .categoryScience,
-            description: "Découvertes et recherches scientifiques"
-        ),
-        CategoryItem(
-            id: "culture",
-            name: "Culture",
-            icon: "theatermasks.fill",
-            color: .categoryCulture,
-            description: "Arts, spectacles et patrimoine"
-        ),
-        CategoryItem(
-            id: "social",
-            name: "Social",
-            icon: "heart.fill",
-            color: .categorySocial,
-            description: "Solidarité et initiatives citoyennes"
-        ),
-        CategoryItem(
             id: "santé",
             name: "Santé",
             icon: "cross.case.fill",
             color: .categoryHealth,
             description: "Bien-être et avancées médicales"
+        ),
+        CategoryItem(
+            id: "sciences-et-tech",
+            name: "Sciences & Tech",
+            icon: "flask.fill",
+            color: .categoryTech,
+            description: "Découvertes scientifiques et innovations tech"
+        ),
+        CategoryItem(
+            id: "social-et-culture",
+            name: "Social & Culture",
+            icon: "theatermasks.fill",
+            color: .categoryCulture,
+            description: "Solidarité, arts et patrimoine"
         )
     ]
     
@@ -75,39 +61,25 @@ extension CategoryItem {
             description: "Environnement & nature"
         ),
         CategoryItem(
-            id: "tech",
-            name: "Tech",
-            icon: "cpu.fill",
-            color: .categoryTech,
-            description: "Innovations"
-        ),
-        CategoryItem(
-            id: "science",
-            name: "Science",
-            icon: "flask.fill",
-            color: .categoryScience,
-            description: "Découvertes"
-        ),
-        CategoryItem(
-            id: "culture",
-            name: "Culture",
-            icon: "theatermasks.fill",
-            color: .categoryCulture,
-            description: "Arts & spectacles"
-        ),
-        CategoryItem(
-            id: "social",
-            name: "Social",
-            icon: "heart.fill",
-            color: .categorySocial,
-            description: "Solidarité"
-        ),
-        CategoryItem(
             id: "santé",
             name: "Santé",
             icon: "cross.case.fill",
             color: .categoryHealth,
             description: "Bien-être"
+        ),
+        CategoryItem(
+            id: "sciences-et-tech",
+            name: "Sciences & Tech",
+            icon: "flask.fill",
+            color: .categoryTech,
+            description: "Découvertes & innovations"
+        ),
+        CategoryItem(
+            id: "social-et-culture",
+            name: "Social & Culture",
+            icon: "theatermasks.fill",
+            color: .categoryCulture,
+            description: "Solidarité & arts"
         )
     ]
 }
