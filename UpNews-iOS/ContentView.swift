@@ -10,7 +10,6 @@ struct ContentView: View {
     
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @StateObject private var appState = AppStateService.shared
-    @StateObject private var authService = AuthService.shared
     @ObservedObject private var userDataService = UserDataService.shared
     
     // MARK:  - Body
@@ -24,7 +23,6 @@ struct ContentView: View {
             case .onboarding:
                 OnboardingView {
                     hasCompletedOnboarding = true
-                    // Après l'onboarding, TOUJOURS aller à Auth
                     appState.currentScreen = .auth
                 }
                 
@@ -38,7 +36,7 @@ struct ContentView: View {
                     }
                 }
             
-            case .categorySelection: 
+            case .categorySelection:
                 CategorySelectionView {
                     Task {
                         await appState.handleCategoriesSelected()
@@ -50,23 +48,8 @@ struct ContentView: View {
                     .environmentObject(userDataService)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: appState.currentScreen)
         .task {
             await appState.initialize(hasCompletedOnboarding: hasCompletedOnboarding)
-        }
-        .onChange(of: authService.isAuthenticated) { oldValue, isAuth in
-            // Ignorer si pas de changement réel
-            guard oldValue != isAuth else { return }
-            
-            Task {
-                if isAuth {
-                    // Connexion (Email ou Google)
-                    await appState.handleAuthentication()
-                } else {
-                    // Déconnexion
-                    appState.handleSignOut()
-                }
-            }
         }
     }
 }

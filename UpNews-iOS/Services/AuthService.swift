@@ -75,6 +75,11 @@ class AuthService: ObservableObject {
             isAuthenticated = true
             currentUser = session.user
             
+            // Naviguer vers l'écran principal
+            Task {
+                await AppStateService.shared.handleAuthentication()
+            }
+            
         } catch {
             let errorDesc = error.localizedDescription
             
@@ -125,6 +130,11 @@ class AuthService: ObservableObject {
             isAuthenticated = true
             currentUser = session.user
             
+            // Naviguer vers l'écran principal
+            Task {
+                await AppStateService.shared.handleAuthentication()
+            }
+            
         } catch {
             errorMessage = "Erreur d'inscription: \(error.localizedDescription)"
             isAuthenticated = false
@@ -170,6 +180,11 @@ class AuthService: ObservableObject {
             isAuthenticated = true
             currentUser = session.user
             
+            // Naviguer vers l'écran principal
+            Task {
+                await AppStateService.shared.handleAuthentication()
+            }
+            
             // Note: Le display_name sera demandé lors de la sélection du compagnon
             
         } catch {
@@ -204,6 +219,11 @@ class AuthService: ObservableObject {
             isAuthenticated = true
             currentUser = session.user
             
+            // Naviguer vers l'écran principal
+            Task {
+                await AppStateService.shared.handleAuthentication()
+            }
+            
         } catch {
             errorMessage = "Erreur connexion Apple: \(error.localizedDescription)"
             isAuthenticated = false
@@ -220,6 +240,7 @@ class AuthService: ObservableObject {
             try await client.auth.signOut()
             isAuthenticated = false
             currentUser = nil
+            AppStateService.shared.handleSignOut()
         } catch {
             // Erreur silencieuse lors de la déconnexion
         }

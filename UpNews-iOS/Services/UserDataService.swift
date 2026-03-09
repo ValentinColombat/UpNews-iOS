@@ -548,6 +548,7 @@ class UserDataService: ObservableObject {
             "olga": "Olga",
             "luka": "Luka",
             "nina": "Nina",
+            "seb": "Seb",
             "mochi": "Mochi",
             "seve": "Sève",
             "pepite": "Pépite",

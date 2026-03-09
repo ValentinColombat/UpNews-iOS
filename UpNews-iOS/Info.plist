@@ -32,13 +32,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 	</dict>
-	<key>CFBundleIdentifier</key>
-	<string></string>
-	<key>CFBundleExecutable</key>
-	<string></string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>UIBackgroundModes</key>
-	<array/>
+	<array>
+		<string>audio</string>
+	</array>
 </dict>
 </plist>

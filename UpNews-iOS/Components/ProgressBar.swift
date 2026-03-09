@@ -71,14 +71,17 @@ struct ProgressBar: View {
                 .shadow(color: Color.upNewsOrange.opacity(0.8), radius: 4, x: 0, y: 0)
             }
             .onAppear {
-                // Animation initiale
-                withAnimation(.spring(response: 5.0, dampingFraction: 0.7)) {
+                if #available(iOS 18, *) {
+                    // Animation spring uniquement sur iOS 18+
+                    withAnimation(.spring(response: 5.0, dampingFraction: 0.7)) {
+                        currentProgress = progress
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        generateParticles(size: orientation == .horizontal ? geometry.size.width : geometry.size.height)
+                    }
+                } else {
+                    // iOS 17 : pas d'animation au premier rendu pour éviter le slide
                     currentProgress = progress
-                }
-                
-                // Générer les particules après un délai
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    generateParticles(size: orientation == .horizontal ? geometry.size.width : geometry.size.height)
                 }
             }
             .onChange(of: progress) { oldValue, newValue in

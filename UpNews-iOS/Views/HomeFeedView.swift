@@ -7,8 +7,7 @@ import Auth
 
 struct HomeFeedView: View {
     
-    @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
-    @ObservedObject private var authService = AuthService.shared
+    @EnvironmentObject private var userDataService: UserDataService
     @Binding var selectedTab: Int
     
     private var xpProgress: Double {
@@ -17,43 +16,42 @@ struct HomeFeedView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        ZStack {
+            Color.upNewsBackground.ignoresSafeArea()
+
             if userDataService.mainArticle == nil && userDataService.secondaryArticles.isEmpty {
-                // État vide - Aucun article disponible
                 emptyStateView
             } else {
                 ScrollView {
                     VStack(spacing: 20) {
                         heroCard
-                        
+
                         if let main = userDataService.mainArticle {
                             mainArticleCard(main)
                         }
-                        
+
                         secondaryArticlesSection
                     }
-                    .padding(. bottom, 40)
+                    .padding(.bottom, 40)
                 }
-                .background(Color.upNewsBackground)
                 .ignoresSafeArea(edges: .top)
             }
         }
     }
-    
-    // MARK: - Hero Card (PLEIN ÉCRAN)
-    
+
+
+
     private var heroCard: some View {
         ZStack {
             // Background image PLEIN ÉCRAN
-            GeometryReader { geometry in
-                Image("BackgroundHomePage2")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: 500)
-                    .blur(radius: 3)
-                    .clipped()
-            }
-            . frame(height: 500)
+            Image("BackgroundHomePage2")
+                .resizable()
+                .scaledToFill()
+                .frame(width: UIScreen.main.bounds.width)
+                .frame(height: 500)
+                .blur(radius: 3)
+                .clipped()
+                .contentShape(Rectangle())
             
             VStack(spacing: 0) {
                 // Header avec les 2 pastilles
@@ -222,9 +220,10 @@ struct HomeFeedView: View {
             }
         }
         .frame(height: 500)
-        .ignoresSafeArea(edges: .top)
+        .clipped()
+        .contentShape(Rectangle())
     }
-    
+
     // MARK:  - Main Article Card
     
     private func mainArticleCard(_ article: Article) -> some View {

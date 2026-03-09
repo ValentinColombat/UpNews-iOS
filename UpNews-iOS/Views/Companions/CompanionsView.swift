@@ -66,9 +66,15 @@ struct CompanionsView: View {
         // Niveau 8
         CompanionCharacter(id: "nina", name: "Nina", imageName: "nina", emoji: nil, unlockLevel: 8, isUnlocked: false, isEquipped: false),
         
+        // Niveau 9
+        CompanionCharacter(id: "seb", name: "Seb", imageName: "seb", emoji: nil, unlockLevel: 9, isUnlocked: false, isEquipped: false),
+        
         // Niveau 10
         CompanionCharacter(id: "mochi", name: "Mochi", imageName: "mochi", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
         CompanionCharacter(id: "seve", name: "Sève", imageName: "seve", emoji: nil, unlockLevel: 10, isUnlocked: false, isEquipped: false),
+        
+        // Niveau 11
+        CompanionCharacter(id: "jo", name: "Jo", imageName: "jo", emoji: nil, unlockLevel: 11, isUnlocked: false, isEquipped: false),
         
         // Niveau 15
         CompanionCharacter(id: "pepite", name: "Pépite", imageName: "pepite", emoji: nil, unlockLevel: 15, isUnlocked: false, isEquipped: false),
@@ -80,79 +86,77 @@ struct CompanionsView: View {
     // MARK: - Body
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.upNewsBackground
-                    .ignoresSafeArea()
-                if isLoading {
-                    LoadingView()
-                }
-                
-                else {
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            // Header avec niveau
-                            headerSection
-                            
-                            // Barre de progression animée
-                            xpProgressSection
-                            
-                            // Carte boost notification
-                            if shouldShowNotificationBoost {
-                                NotificationBoostCard {
-                                    handleNotificationBoostTap()
-                                }
-                                .padding(.horizontal, 20)
+        ZStack {
+            Color.upNewsBackground
+                .ignoresSafeArea()
+            if isLoading {
+                LoadingView()
+            }
+            
+            else {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Header avec niveau
+                        headerSection
+                        
+                        // Barre de progression animée
+                        xpProgressSection
+                        
+                        // Carte boost notification
+                        if shouldShowNotificationBoost {
+                            NotificationBoostCard {
+                                handleNotificationBoostTap()
                             }
-                            
-                            // Liste des compagnons
-                            companionsSection
+                            .padding(.horizontal, 20)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 100)
+                        
+                        // Liste des compagnons
+                        companionsSection
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 100)
                 }
             }
-            .navigationBarHidden(true)
-            .task {
-                await loadUserData()
-            }
-            .fullScreenCover(isPresented: $showNotificationPermission) {
-                NotificationPermissionView(
-                    onAllow: { handleNotificationAllow() },
-                    onLater: { handleNotificationLater() }
-                )
-                .background(ClearBackgroundView())
-            }
-            .alert("Notifications désactivées", isPresented: $showNotificationDenied) {
-                Button("Annuler", role: .cancel) { }
-                Button("Ouvrir Réglages") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-            } message: {
-                Text("Active les notifications dans les réglages iOS pour recevoir tes rappels quotidiens et débloquer +80 XP.")
-            }
-            // ✅ AJOUTÉ : Overlay pour la popup de déblocage
-            .overlay {
-                if showUnlockPopup {
-                    UnlockCompanionPopup(
-                        companions: unlockedCompanions,
-                        onDismiss: {
-                            showUnlockPopup = false
-                        },
-                        onNavigateToCompanions: nil // On est déjà sur la page Compagnons
-                    )
-                }
-            }
-            // ✅ AJOUTÉ : Confettis
-            .confettiCannon(
-                trigger: $confettiCounter,
-                num: 50,
-                radius: 500
-            )
         }
+        .navigationBarHidden(true)
+        .task {
+            await loadUserData()
+        }
+        .fullScreenCover(isPresented: $showNotificationPermission) {
+            NotificationPermissionView(
+                onAllow: { handleNotificationAllow() },
+                onLater: { handleNotificationLater() }
+            )
+            .background(ClearBackgroundView())
+        }
+        .alert("Notifications désactivées", isPresented: $showNotificationDenied) {
+            Button("Annuler", role: .cancel) { }
+            Button("Ouvrir Réglages") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+        } message: {
+            Text("Active les notifications dans les réglages iOS pour recevoir tes rappels quotidiens et débloquer +80 XP.")
+        }
+        // Overlay pour la popup de déblocage
+        .overlay {
+            if showUnlockPopup {
+                UnlockCompanionPopup(
+                    companions: unlockedCompanions,
+                    onDismiss: {
+                        showUnlockPopup = false
+                    },
+                    onNavigateToCompanions: nil // On est déjà sur la page Compagnons
+                )
+            }
+        }
+        // Confettis
+        .confettiCannon(
+            trigger: $confettiCounter,
+            num: 50,
+            radius: 500
+        )
     }
     
     // MARK: - Header Section
@@ -467,6 +471,7 @@ struct CompanionsView: View {
                         2: [("Brume", "brume"), ("Flocon", "flocon")],
                         5: [("Caramel", "caramel"), ("Écorce", "ecorce"), ("Luciole", "luciole")],
                         10: [("Mochi", "mochi"), ("Sève", "seve")],
+                        11: [("Jo", "jo")],
                         15: [("Pépite", "pepite")],
                         20: [("Noisette", "noisette")]
                         ]
@@ -510,7 +515,9 @@ struct CompanionsView: View {
             6: [("Olga", "olga")],
             7: [("Luka", "luka")],
             8: [("Nina", "nina")],
+            9: [("Seb", "seb")],
             10: [("Mochi", "mochi"), ("Sève", "seve")],
+            11: [("Jo", "jo")],
             15: [("Pépite", "pepite")],
             20: [("Noisette", "noisette")]
         ]

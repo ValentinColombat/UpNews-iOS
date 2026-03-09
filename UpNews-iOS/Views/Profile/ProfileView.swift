@@ -215,7 +215,7 @@ struct ProfileView: View {
             
             // Articles ce mois
             StatCard(
-                iconName: "apple.books.pages",
+                iconName: "book.pages",
                 value: "\(userDataService.articlesReadThisMonth)",
                 label: "Ce mois-ci",
                 iconColor: Color.upNewsLightPurple,
@@ -473,10 +473,11 @@ struct ProfileView: View {
                 notificationTime = localTime
             }
             
-           
-            
+        } catch is CancellationError {
+            // Annulation normale (navigation, reconstruction de la vue), on ignore silencieusement
+            return
         } catch {
-            print("Erreur dans le chargement des données\(error)")
+            print("Erreur chargement donnees utilisateur: \(error)")
         }
         
         isLoading = false

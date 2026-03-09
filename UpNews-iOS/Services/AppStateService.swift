@@ -59,8 +59,6 @@ class AppStateService:  ObservableObject {
             return
         }
         
-        // Utilisateur EST authentifié
-        
         // 3. Vérifier compagnon
         let hasCompanion = await userDataService.checkCompanion()
         
@@ -73,7 +71,6 @@ class AppStateService:  ObservableObject {
         do {
             try await userDataService.loadUserProfile()
             
-            // Vérifier si l'utilisateur a des catégories préférées
             guard !userDataService.preferredCategories.isEmpty else {
                 currentScreen = .categorySelection
                 return
@@ -85,7 +82,6 @@ class AppStateService:  ObservableObject {
             currentScreen = .main
             
         } catch {
-            // En cas d'erreur, on ne déconnecte pas, on va quand même à companion
             currentScreen = .companionSelection
         }
     }
@@ -97,7 +93,6 @@ class AppStateService:  ObservableObject {
         // Petit délai pour stabiliser la session (surtout pour Google OAuth)
         try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
         
-        // Vérifier si l'utilisateur a déjà un compagnon
         let hasCompanion = await userDataService.checkCompanion()
         
         guard hasCompanion else {
@@ -105,23 +100,19 @@ class AppStateService:  ObservableObject {
             return
         }
         
-        // L'utilisateur a un compagnon, charger le profil complet
         do {
             try await userDataService.loadUserProfile()
             
-            // Vérifier si l'utilisateur a des catégories préférées
             guard !userDataService.preferredCategories.isEmpty else {
                 currentScreen = .categorySelection
                 return
             }
             
-            // Charger les articles et stats
             try await userDataService.loadArticlesAndStats()
             
             currentScreen = .main
             
         } catch {
-            // En cas d'erreur, retourner à companionSelection pour sécurité
             currentScreen = .companionSelection
         }
     }
@@ -134,19 +125,16 @@ class AppStateService:  ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
         
         do {
-            // Recharger le profil complet pour récupérer le compagnon
             try await userDataService.loadUserProfile()
             
-            // Vérifier si l'utilisateur a des catégories préférées
             if userDataService.preferredCategories.isEmpty {
                 currentScreen = .categorySelection
             } else {
-                // L'utilisateur a déjà des catégories (cas rare)
                 try await userDataService.loadArticlesAndStats()
                 currentScreen = .main
             }
         } catch {
-            currentScreen = .categorySelection // Continuer quand même
+            currentScreen = .categorySelection
         }
     }
     
@@ -158,9 +146,7 @@ class AppStateService:  ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
         
         do {
-            // Recharger TOUT pour être sûr d'avoir toutes les données
             try await userDataService.loadAllData()
-            
             currentScreen = .main
         } catch {
             currentScreen = .auth

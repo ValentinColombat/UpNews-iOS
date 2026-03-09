@@ -16,6 +16,7 @@ struct LibraryView: View {
     @State private var likedArticles: Set<UUID> = [] // Track des articles likés
     @State private var showOnlyLiked: Bool = false // Filtre articles likés
     @State private var isLoading = true // État de chargement
+    @State private var loadTask: Task<Void, Never>? = nil // Tâche en cours
     
     enum CategoryFilter: String, CaseIterable {
         case all = "Tous"
@@ -65,53 +66,55 @@ struct LibraryView: View {
     // MARK: - Body
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.upNewsBackground
-                    .ignoresSafeArea()
-                
-                if isLoading {
-                    // Indicateur de chargement
-                    LoadingView()
-                            
-                } else {
-                    VStack(spacing: 0) {
-                        // Header
-                        headerSection
+        ZStack {
+            Color.upNewsBackground
+                .ignoresSafeArea()
+            
+            if isLoading {
+                // Indicateur de chargement
+                LoadingView()
                         
-                        // Filtres
-                        filterSection
-                        
-                        // Bouton articles likés
-                        likedArticlesButton
-                        
-                        // Liste articles
-                        if filteredArticles.isEmpty {
-                            emptyStateView
-                        } else {
-                            ScrollView {
-                                LazyVStack(spacing: 12) {
-                                    ForEach(filteredArticles) { article in
-                                        NavigationLink(destination: ArticleDetailView(article: article,autoPlayAudio: false,selectedTab: .constant(2))) {
-                                            articleCard(article)
-                                        }
-                                        .buttonStyle(.plain)
+            } else {
+                VStack(spacing: 0) {
+                    // Header
+                    headerSection
+                    
+                    // Filtres
+                    filterSection
+                    
+                    // Bouton articles likés
+                    likedArticlesButton
+                    
+                    // Liste articles
+                    if filteredArticles.isEmpty {
+                        emptyStateView
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredArticles) { article in
+                                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false, selectedTab: .constant(2))) {
+                                        articleCard(article)
                                     }
+                                    .buttonStyle(.plain)
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.top, 16)
-                                .padding(.bottom, 100)
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .padding(.bottom, 100)
                         }
                     }
                 }
             }
-            .navigationBarHidden(true)
         }
+        .navigationBarHidden(true)
         .task {
-            await loadArticlesFromSupabase()
+            loadTask?.cancel()
+            loadTask = Task {
+                await loadArticlesFromSupabase()
+            }
         }
         .refreshable {
+            loadTask?.cancel()
             await loadArticlesFromSupabase()
         }
     }
@@ -349,15 +352,38 @@ struct LibraryView: View {
     
     // MARK: - Supabase Integration
     
-    /// Charge tous les articles depuis Supabase
+    /// Charge les articles depuis Supabase :
+    /// - Uniquement ceux publiés jusqu'à aujourd'hui (pas les articles futurs)
+    /// - Uniquement ceux publiés depuis la date d'inscription de l'utilisateur
     private func loadArticlesFromSupabase() async {
         isLoading = true
         
         do {
-            // Récupérer tous les articles
+            try Task.checkCancellation()
+            
+            // Date du jour au format yyyy-MM-dd (exclure les articles futurs)
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let today = dateFormatter.string(from: Date())
+            
+            // Date d'inscription de l'utilisateur (exclure les articles antérieurs)
+            let session = try await SupabaseConfig.client.auth.session
+            let userCreatedAt = session.user.createdAt
+            // On utilise le début du jour d'inscription (pas l'heure exacte)
+            // pour que les articles du jour J soient bien inclus même si
+            // l'utilisateur s'est inscrit à 23h55.
+            let calendar = Calendar.current
+            let startOfSignUpDay = calendar.startOfDay(for: userCreatedAt)
+            let signUpDate = dateFormatter.string(from: startOfSignUpDay)
+            
+            // Requête filtrée :
+            // - published_date <= aujourd'hui  → pas d'articles futurs
+            // - published_date >= date d'inscription → pas d'historique antérieur
             let response = try await SupabaseConfig.client
                 .from("articles")
                 .select()
+                .lte("published_date", value: today)
+                .gte("published_date", value: signUpDate)
                 .order("published_date", ascending: false)
                 .execute()
             
@@ -366,6 +392,10 @@ struct LibraryView: View {
             
             // Charger les articles likés de l'utilisateur
             await loadLikedArticles()
+        } catch is CancellationError {
+            // Annulation normale (navigation), on ne remet pas isLoading à false
+            // pour éviter un flash si la vue est reconstruite
+            return
         } catch {
             print("Erreur chargement articles depuis Supabase: \(error)")
         }
@@ -390,10 +420,10 @@ struct LibraryView: View {
             }
             
             let favorites = try JSONDecoder().decode([FavoriteArticle].self, from: response.data)
-            
             likedArticles = Set(favorites.compactMap { UUID(uuidString: $0.article_id) })
             
-            
+        } catch is CancellationError {
+            // Tâche annulée normalement (navigation, rafraîchissement), on ignore silencieusement
         } catch {
             print("Erreur chargement articles favoris: \(error)")
         }

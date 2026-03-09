@@ -8,6 +8,7 @@ import Auth
 import ConfettiSwiftUI
 import AVFoundation
 import AVKit
+import MediaPlayer
 
 struct ArticleDetailView: View {
     // MARK: - Properties
@@ -442,40 +443,28 @@ struct ArticleDetailView: View {
                                 .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
                             
                         case .failure:
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.1))
+                            // ✅ Fallback avec l'image "fallback"
+                            Image("fallback")
+                                .resizable()
+                                .scaledToFill()
                                 .frame(width: geometry.size.width, height: 200)
-                                .overlay(
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "photo.fill")
-                                            .font(.system(size: 32))
-                                            .foregroundColor(.gray.opacity(0.5))
-                                        Text("Image non disponible")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.gray.opacity(0.7))
-                                    }
-                                )
+                                .clipped()
                                 .cornerRadius(12)
+                                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
                             
                         @unknown default:
                             EmptyView()
                         }
                     }
                 } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.1))
+                    // ✅ Fallback avec l'image "mousse" quand pas d'URL
+                    Image("fallback")
+                        .resizable()
+                        .scaledToFill()
                         .frame(width: geometry.size.width, height: 200)
-                        .overlay(
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.gray.opacity(0.5))
-                                Text("Aucune image")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.gray.opacity(0.7))
-                            }
-                        )
+                        .clipped()
                         .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
                 }
             }
         }
@@ -989,7 +978,68 @@ struct ArticleDetailView: View {
         } catch {
             print("Erreur lors de la configuration de l'Audio Session: \(error.localizedDescription)")
         }
-       
+        
+        // Configurer les commandes du Lock Screen
+        setupRemoteTransportControls()
+    }
+    
+    // MARK: - Remote Transport Controls (Lock Screen)
+    
+    private func setupRemoteTransportControls() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        // Commande Play
+        commandCenter.playCommand.isEnabled = true
+        commandCenter.playCommand.addTarget { _ in
+            self.play()
+            return .success
+        }
+        
+        // Commande Pause
+        commandCenter.pauseCommand.isEnabled = true
+        commandCenter.pauseCommand.addTarget { _ in
+            self.pause()
+            return .success
+        }
+        
+        // Commande Toggle Play/Pause
+        commandCenter.togglePlayPauseCommand.isEnabled = true
+        commandCenter.togglePlayPauseCommand.addTarget { _ in
+            self.togglePlayPause()
+            return .success
+        }
+    }
+    
+    // MARK: - Update Now Playing Info (Lock Screen)
+    
+    private func updateNowPlayingInfo() {
+        var nowPlayingInfo = [String: Any]()
+        
+        nowPlayingInfo[MPMediaItemPropertyTitle] = article.title
+        nowPlayingInfo[MPMediaItemPropertyArtist] = "UpNews"
+        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = article.categoryDisplayName
+        
+        if audioDuration > 0 {
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioDuration
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+        }
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? playbackSpeed : 0.0
+        
+        // ✅ Ajouter l'artwork à chaque update (avec cache)
+        if let logoImage = UIImage(named: "mousse-app") {
+            let artwork = MPMediaItemArtwork(boundsSize: logoImage.size) { _ in logoImage }
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+        }
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    // MARK: - Load Artwork (appelé une seule fois au démarrage)
+    
+    private func loadNowPlayingArtwork() {
+        // Cette fonction n'est plus nécessaire mais on la garde au cas où
+        print("🎨 Artwork sera chargé via updateNowPlayingInfo()")
     }
 
     private func setupAudioPlayer() {
@@ -1054,6 +1104,9 @@ struct ArticleDetailView: View {
             if currentSeconds.isFinite {
                 self.currentTime = currentSeconds
                 
+                // Mettre à jour les infos du Lock Screen
+                self.updateNowPlayingInfo()
+                
                 if self.audioDuration > 0 {
                     let progress = currentSeconds / self.audioDuration
                     if progress >= 0.95 && !self.hasClaimedXp && !self.hasMarkedAsRead {
@@ -1071,6 +1124,8 @@ struct ArticleDetailView: View {
                 await MainActor.run {
                     if duration.isValid && !duration.isIndefinite {
                         self.audioDuration = CMTimeGetSeconds(duration)
+                        self.updateNowPlayingInfo() // Mettre à jour avec la durée
+                        self.loadNowPlayingArtwork() // ✅ Charger l'image UNE SEULE FOIS
                     }
                     self.isLoadingAudio = false
                 }
@@ -1124,22 +1179,27 @@ struct ArticleDetailView: View {
     }
 
     private func togglePlayPause() {
-       
-        
-        guard let player = audioPlayer else {
-            
+        guard audioPlayer != nil else {
             return
         }
         
         if isPlaying {
-            player.pause()
-            isPlaying = false
-            
+            pause()
         } else {
-            player.play()
-            isPlaying = true
-          
+            play()
         }
+    }
+    
+    private func play() {
+        audioPlayer?.play()
+        isPlaying = true
+        updateNowPlayingInfo()
+    }
+    
+    private func pause() {
+        audioPlayer?.pause()
+        isPlaying = false
+        updateNowPlayingInfo()
     }
 
     private func changePlaybackSpeed(_ speed: Double) {

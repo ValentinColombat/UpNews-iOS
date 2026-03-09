@@ -103,10 +103,8 @@ struct AuthView: View {
                         
                         // Toggle Sign Up / Sign In
                         Button(action: {
-                            withAnimation {
-                                isSignUpMode.toggle()
-                                authService.errorMessage = nil
-                            }
+                            isSignUpMode.toggle()
+                            authService.errorMessage = nil
                         }) {
                             HStack(spacing: 4) {
                                 Text(isSignUpMode ? "Déjà un compte ?" : "Pas encore de compte ?")
@@ -302,7 +300,7 @@ struct PasswordStrengthView: View {
                     .foregroundColor(strengthColor)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: password)
+        .animation(.none, value: password)
     }
 }
 
