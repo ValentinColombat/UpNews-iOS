@@ -29,6 +29,11 @@ struct ArticleDetailView: View {
     @State private var currentTime: Double = 0
     @State private var confettiTrigger = 0
     @State private var playerItemObservers: [NSObjectProtocol] = []
+    
+    // ✅ NOUVEAU - Limitation audio Free
+    @State private var audioLimitReached = false
+    @State private var showPremiumPaywall = false
+    private let freeAudioLimit: Double = 15.0 // 15 secondes en Free
 
     
     @ObservedObject private var userDataService = UserDataService.shared
@@ -121,6 +126,13 @@ struct ArticleDetailView: View {
                         }
                     }
                 )
+            }
+            
+            // ✅ NOUVEAU - Paywall Premium
+            if showPremiumPaywall {
+                SubscriptionView(onDismiss: {
+                    showPremiumPaywall = false
+                })
             }
             }
         }
@@ -292,6 +304,11 @@ struct ArticleDetailView: View {
 
     private var audioPlayerView: some View {
         VStack(spacing: 0) {
+            // ✅ NOUVEAU - Avertissement limitation audio en Free
+            if !userDataService.isPremium && audioLimitReached {
+                audioLimitWarning
+            }
+            
             // Play + Waveform + Vitesse
             HStack(spacing: 14) {
                 Button {
@@ -391,7 +408,9 @@ struct ArticleDetailView: View {
                             .font(.system(size: 9))
                             .foregroundColor(.white)
                         
-                        Text("+20 XP")
+                        // ✅ Affiche 40 XP pour Premium, 20 XP pour Free
+                        let xpAmount = userDataService.isPremium ? 40 : 20
+                        Text("+\(xpAmount) XP")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                     }
@@ -417,6 +436,57 @@ struct ArticleDetailView: View {
         .task {
             setupAudioPlayer()
         }
+    }
+    
+    // MARK: - Audio Limit Warning (Free users only)
+    
+    private var audioLimitWarning: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.upNewsOrange)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Limite atteinte")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.upNewsBlack)
+                    
+                    Text("L'audio est limité à 15 secondes en version gratuite")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            
+            Button {
+                showPremiumPaywall = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 12))
+                    Text("Continuer à écouter")
+                        .font(.system(size: 14, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    LinearGradient(
+                        colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(10)
+                .shadow(color: Color.upNewsOrange.opacity(0.3), radius: 4, x: 0, y: 2)
+            }
+        }
+        .padding(16)
+        .background(Color.upNewsOrange.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.bottom, 12)
     }
     // MARK: - Inline Generated Image
     
@@ -505,7 +575,9 @@ struct ArticleDetailView: View {
             claimXpPoints()
         } label: {
             VStack(spacing: 8) {
-                Text(hasClaimedXp ? "XP récupérée !" : "+20 d'XP gagnés!")
+                // ✅ Affiche 40 XP pour Premium, 20 XP pour Free
+                let xpAmount = userDataService.isPremium ? 40 : 20
+                Text(hasClaimedXp ? "XP récupérée !" : "+\(xpAmount) d'XP gagnés!")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.white)
                 
@@ -851,7 +923,8 @@ struct ArticleDetailView: View {
     private func claimXpPoints() {
         guard !hasClaimedXp else { return }
         
-        let pointsToAdd = 20
+        // ✅ Premium gagne 40 XP, Free gagne 20 XP
+        let pointsToAdd = userDataService.isPremium ? 40 : 20
         userDataService.currentXp += pointsToAdd
         
         var didLevelUp = false
@@ -925,7 +998,8 @@ struct ArticleDetailView: View {
         
         hasMarkedAsRead = true
         
-        let pointsToAdd = 20
+        // ✅ Premium gagne 40 XP, Free gagne 20 XP
+        let pointsToAdd = userDataService.isPremium ? 40 : 20
         userDataService.currentXp += pointsToAdd
         
         var didLevelUp = false
@@ -1106,6 +1180,12 @@ struct ArticleDetailView: View {
                 
                 // Mettre à jour les infos du Lock Screen
                 self.updateNowPlayingInfo()
+                
+                // ✅ NOUVEAU - Limitation audio Free à 15 secondes
+                if !self.userDataService.isPremium && currentSeconds >= self.freeAudioLimit && !self.audioLimitReached {
+                    self.audioLimitReached = true
+                    self.pause()
+                }
                 
                 if self.audioDuration > 0 {
                     let progress = currentSeconds / self.audioDuration

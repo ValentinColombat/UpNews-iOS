@@ -25,6 +25,7 @@ struct CompanionsView: View {
     @EnvironmentObject private var userDataService: UserDataService // ✅ AJOUTÉ
     @State private var selectedCompanionId: String = ""
     @State private var isLoading = true
+    @State private var showPremiumPaywall = false // ✅ NOUVEAU
     
     // Notifications
     @State private var showNotificationPermission = false
@@ -117,10 +118,23 @@ struct CompanionsView: View {
                     .padding(.bottom, 100)
                 }
             }
+            
+            // ✅ NOUVEAU - Paywall Premium
+            if showPremiumPaywall {
+                SubscriptionView(onDismiss: {
+                    showPremiumPaywall = false
+                })
+            }
         }
         .navigationBarHidden(true)
         .task {
             await loadUserData()
+        }
+        .onChange(of: userDataService.subscriptionTier) { oldTier, newTier in
+            // ✅ NOUVEAU - Détecter le passage à Premium
+            if oldTier == .free && newTier == .premium {
+                handleUpgradeToPremium()
+            }
         }
         .fullScreenCover(isPresented: $showNotificationPermission) {
             NotificationPermissionView(
@@ -147,7 +161,7 @@ struct CompanionsView: View {
                     onDismiss: {
                         showUnlockPopup = false
                     },
-                    onNavigateToCompanions: nil // On est déjà sur la page Compagnons
+                    onNavigateToCompanions: nil as (() -> Void)? // On est déjà sur la page Compagnons
                 )
             }
         }
@@ -279,13 +293,32 @@ struct CompanionsView: View {
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
             } else {
-                HStack(spacing: 4) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 10))
-                    Text("Niveau \(companion.unlockLevel)")
-                        .font(.system(size: 13, weight: .semibold))
+                // ✅ NOUVEAU - Différencier Free et Premium pour les compagnons verrouillés
+                if !userDataService.isPremium && companion.unlockLevel > 5 {
+                    // Free : Compagnon Premium
+                    VStack(spacing: 4) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 10))
+                            Text("Premium")
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                        .foregroundColor(.upNewsOrange)
+                        
+                        Text("Niveau \(companion.unlockLevel)")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    // Compagnon pas encore atteint en niveau
+                    HStack(spacing: 4) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10))
+                        Text("Niveau \(companion.unlockLevel)")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(.upNewsOrange)
                 }
-                .foregroundColor(.upNewsOrange)
             }
         }
         .frame(maxWidth: .infinity)
@@ -295,10 +328,12 @@ struct CompanionsView: View {
             ? Color.upNewsBlueMid.opacity(0.1)
             : Color.white
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(companion.isEquipped ? Color.upNewsBlueMid : Color.clear, lineWidth: 1)
-        )
+        .overlay {
+            if companion.isEquipped {
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.upNewsBlueMid, lineWidth: 1)
+            }
+        }
         .overlay(alignment: .topTrailing) {
             if !companion.isUnlocked {
                 LockLottieView()
@@ -323,6 +358,9 @@ struct CompanionsView: View {
         .onTapGesture {
             if companion.isUnlocked && !companion.isEquipped {
                 equipCompanion(companion)
+            } else if !companion.isUnlocked && !userDataService.isPremium && companion.unlockLevel > 5 {
+                // ✅ NOUVEAU - Afficher le paywall pour les compagnons Premium
+                showPremiumPaywall = true
             }
         }
     }
@@ -345,15 +383,26 @@ struct CompanionsView: View {
     
     private func updateUnlockedCompanions() {
         let currentLevel = userDataService.currentLevel
+        let isPremium = userDataService.isPremium
         
         companions = companions.map { companion in
-            CompanionCharacter(
+            // Logique de déblocage :
+            // - Si Premium : tous les compagnons jusqu'au niveau actuel
+            // - Si Free : seulement les compagnons niveau 1-5
+            let isUnlocked: Bool
+            if isPremium {
+                isUnlocked = currentLevel >= companion.unlockLevel
+            } else {
+                isUnlocked = companion.unlockLevel <= 5 && currentLevel >= companion.unlockLevel
+            }
+            
+            return CompanionCharacter(
                 id: companion.id,
                 name: companion.name,
                 imageName: companion.imageName,
                 emoji: companion.emoji,
                 unlockLevel: companion.unlockLevel,
-                isUnlocked: currentLevel >= companion.unlockLevel,
+                isUnlocked: isUnlocked,
                 isEquipped: companion.isEquipped
             )
         }
@@ -503,6 +552,23 @@ struct CompanionsView: View {
     /// L'utilisateur a cliqué sur "Plus tard"
     private func handleNotificationLater() {
        
+    }
+    
+    // ✅ NOUVEAU - Gestion du passage Premium
+    private func handleUpgradeToPremium() {
+        // Recharger les compagnons pour débloquer ceux du niveau actuel
+        updateUnlockedCompanions()
+        updateEquippedCompanion()
+        
+        // Obtenir la liste des compagnons nouvellement débloqués
+        let newlyUnlockedCompanions = userDataService.unlockPremiumCompanions()
+        
+        // Si des compagnons ont été débloqués, afficher la popup
+        if !newlyUnlockedCompanions.isEmpty {
+            unlockedCompanions = newlyUnlockedCompanions
+            showUnlockPopup = true
+            confettiCounter += 1
+        }
     }
     
     // ✅ AJOUTÉ : Vérifie les compagnons débloqués

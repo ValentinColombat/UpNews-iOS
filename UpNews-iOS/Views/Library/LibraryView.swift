@@ -17,6 +17,9 @@ struct LibraryView: View {
     @State private var showOnlyLiked: Bool = false // Filtre articles likés
     @State private var isLoading = true // État de chargement
     @State private var loadTask: Task<Void, Never>? = nil // Tâche en cours
+    @State private var showPremiumPaywall = false // ✅ NOUVEAU - Paywall Premium
+    
+    @EnvironmentObject private var userDataService: UserDataService // ✅ NOUVEAU
     
     enum CategoryFilter: String, CaseIterable {
         case all = "Tous"
@@ -92,10 +95,18 @@ struct LibraryView: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(filteredArticles) { article in
-                                    NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false, selectedTab: .constant(2))) {
-                                        articleCard(article)
+                                    if userDataService.isPremium {
+                                        // Premium : accès direct
+                                        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio: false, selectedTab: .constant(2))) {
+                                            articleCard(article)
+                                        }
+                                        .buttonStyle(.plain)
+                                    } else {
+                                        // Free : tous les articles avec couronne → paywall
+                                        PremiumCardBlur(article: article) {
+                                            showPremiumPaywall = true
+                                        }
                                     }
-                                    .buttonStyle(.plain)
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -104,6 +115,13 @@ struct LibraryView: View {
                         }
                     }
                 }
+            }
+            
+            // ✅ NOUVEAU - Paywall Premium
+            if showPremiumPaywall {
+                SubscriptionView(onDismiss: {
+                    showPremiumPaywall = false
+                })
             }
         }
         .navigationBarHidden(true)
@@ -568,6 +586,22 @@ struct LibraryView: View {
     }
     
     // MARK: - Helper Functions
+    
+    /// ✅ NOUVEAU - Vérifie si un article est verrouillé (>3 jours en Free)
+    private func isArticleLocked(_ article: Article) -> Bool {
+        // Si Premium, aucun article n'est verrouillé
+        guard !userDataService.isPremium else { return false }
+        
+        // Calculer la différence de jours entre aujourd'hui et la date de publication
+        guard let articleDate = parseDate(article.publishedDate) else { return false }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let daysAgo = calendar.dateComponents([.day], from: articleDate, to: now).day ?? 0
+        
+        // Verrouiller si l'article a plus de 3 jours
+        return daysAgo > 3
+    }
     
     private func parseDate(_ dateString: String) -> Date? {
         let formatter = DateFormatter()

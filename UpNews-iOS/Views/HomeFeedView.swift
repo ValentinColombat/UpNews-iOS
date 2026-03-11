@@ -10,6 +10,10 @@ struct HomeFeedView: View {
     @EnvironmentObject private var userDataService: UserDataService
     @Binding var selectedTab: Int
     
+    @State private var showPremiumPaywall = false
+    @State private var showPremiumInfo = false
+    @State private var showOGInfo = false
+    
     private var xpProgress: Double {
         guard userDataService.maxXp > 0 else { return 0 }
         return Double(userDataService.currentXp) / Double(userDataService.maxXp)
@@ -35,6 +39,27 @@ struct HomeFeedView: View {
                     .padding(.bottom, 40)
                 }
                 .ignoresSafeArea(edges: .top)
+            }
+            
+            // ✅ NOUVEAU - Paywall Premium
+            if showPremiumPaywall {
+                SubscriptionView(onDismiss: {
+                    showPremiumPaywall = false
+                })
+            }
+            
+            // ✅ Fiche récapitulative Premium
+            if showPremiumInfo {
+                PremiumInfoSheet(onDismiss: {
+                    showPremiumInfo = false
+                })
+            }
+            
+            // ✅ Fiche OG Member
+            if showOGInfo {
+                OGMemberSheet(onDismiss: {
+                    showOGInfo = false
+                })
             }
         }
     }
@@ -124,6 +149,63 @@ struct HomeFeedView: View {
                 Spacer()
                 
                 ZStack {
+                    // Badge Premium à gauche (cliquable)
+                    if userDataService.isPremium {
+                        HStack {
+                            Button {
+                                showPremiumInfo = true
+                            } label: {
+                                Circle()
+                                    .fill(Color.upNewsOrange)
+                                    .frame(width: 36, height: 36)
+                                    .overlay(
+                                        Image(systemName: "crown.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white)
+                                    )
+                                    .shadow(color: .upNewsOrange.opacity(0.4), radius: 6, y: 2)
+                            }
+                            .buttonStyle(.plain)
+                            .offset(x: 40, y: -90)
+                            
+                            Spacer()
+                        }
+                        .zIndex(10)
+                    }
+                    
+                    // Badge OG Member en dessous du Premium
+                    if userDataService.isOGMember {
+                        HStack {
+                            Button {
+                                showOGInfo = true
+                            } label: {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 0.55, green: 0.35, blue: 0.2), // Marron chaud
+                                                Color(red: 0.82, green: 0.71, blue: 0.55)  // Beige doré
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 36, height: 36)
+                                    .overlay(
+                                        Text("OG")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.white)
+                                    )
+                                    .shadow(color: Color(red: 0.55, green: 0.35, blue: 0.2).opacity(0.4), radius: 6, y: 2)
+                            }
+                            .buttonStyle(.plain)
+                            .offset(x: 40, y: -45)
+                            
+                            Spacer()
+                        }
+                        .zIndex(10)
+                    }
+                    
                     // Compagnon centré (cliquable)
                     Button {
                         selectedTab = 1 // Redirection vers Compagnons
@@ -397,10 +479,18 @@ struct HomeFeedView: View {
                 
                 VStack(spacing: 12) {
                     ForEach(userDataService.secondaryArticles) { article in
-                        NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio:false,selectedTab :$selectedTab)) {
-                            secondaryArticleCard(article)
+                        if userDataService.isPremium {
+                            // Premium : Tous les articles cliquables
+                            NavigationLink(destination: ArticleDetailView(article: article, autoPlayAudio:false,selectedTab :$selectedTab)) {
+                                secondaryArticleCard(article)
+                            }
+                            .buttonStyle(. plain)
+                        } else {
+                            // Free : Articles verrouillés
+                            PremiumCardBlur(article: article) {
+                                showPremiumPaywall = true
+                            }
                         }
-                        .buttonStyle(. plain)
                     }
                 }
                 .padding(.horizontal, 20)

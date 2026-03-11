@@ -50,11 +50,7 @@ struct ProfileView: View {
                         preferencesSection
                             .padding(.top, 20)
                             .padding(.horizontal, 20)
-                        
-                        // Abonnement
-                        subscriptionCard
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
+
                         
                         // Logout
                         VStack(alignment: .leading, spacing: 12) {
@@ -422,39 +418,7 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Subscription Card
-    private var subscriptionCard: some View {
-        VStack(spacing: 16) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.94, green: 0.47, blue: 0.34),
-                    Color(red: 0.96, green: 0.78, blue: 0.37)
-                ]),
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .frame(height: 250)
-            .overlay(
-                VStack(spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 48))
-                        .foregroundColor(.white)
-                    
-                    Text("BETA GRATUITE")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .tracking(1)
-                    
-                    Text("Profitez de toutes les fonctionnalités")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
-                }
-            )
-            .shadow(color: Color(red: 0.94, green: 0.47, blue: 0.34).opacity(0.3), radius: 24, y: 8)
-        }
-    }
-    
+
     // MARK: - Data Loading
     private func loadProfileData() async {
         isLoading = true

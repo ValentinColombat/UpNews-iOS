@@ -33,6 +33,10 @@ class UserDataService: ObservableObject {
     @Published var notificationTime: String? = nil // Heure de notification (ex: "09:00")
     @Published var notificationBonusClaimed: Bool = false // Bonus +80 XP réclamé
     
+    // ✅ NOUVEAU - Subscription
+    @Published var subscriptionTier: SubscriptionTier = .free
+    @Published var isOGMember: Bool = false // Badge OG pour les 50 premiers
+    
     // Articles
     @Published var articles: [Article] = []
     @Published var mainArticle: Article?
@@ -332,11 +336,13 @@ class UserDataService: ObservableObject {
             let selected_main_article_date: String?
             let notification_time: String?
             let notification_bonus_claimed: Bool?
+            let subscription_tier: String?
+            let is_og_member: Bool?
         }
         
         let response = try await SupabaseConfig.client
             .from("users")
-            .select("display_name, selected_companion_id, current_xp, max_xp, current_level, preferred_categories, selected_main_article_id, selected_main_article_date, notification_time, notification_bonus_claimed")
+            .select("display_name, selected_companion_id, current_xp, max_xp, current_level, preferred_categories, selected_main_article_id, selected_main_article_date, notification_time, notification_bonus_claimed, subscription_tier, is_og_member")
             .eq("id", value: session.user.id.uuidString)
             .execute()
         
@@ -361,6 +367,8 @@ class UserDataService: ObservableObject {
         selectedMainArticleDate = profile.selected_main_article_date
         notificationTime = profile.notification_time
         notificationBonusClaimed = profile.notification_bonus_claimed ?? false
+        subscriptionTier = SubscriptionTier(rawValue: profile.subscription_tier ?? "free") ?? .free
+        isOGMember = profile.is_og_member ?? false
     }
     
     // MARK: - Articles Stats
@@ -444,6 +452,54 @@ class UserDataService: ObservableObject {
         currentUserId = nil
         notificationTime = nil
         notificationBonusClaimed = false
+        subscriptionTier = .free
+    }
+    
+    // MARK: - Subscription Helpers
+    
+    /// Vérifie si l'utilisateur est Premium
+    var isPremium: Bool {
+        subscriptionTier == .premium
+    }
+    
+    /// Vérifie si un compagnon est débloqué (niveau atteint OU premium)
+    func isCompanionUnlocked(unlockLevel: Int) -> Bool {
+        if isPremium {
+            // Premium : tous les compagnons jusqu'au niveau actuel
+            return currentLevel >= unlockLevel
+        } else {
+            // Free : seulement les compagnons niveau 1-5
+            return unlockLevel <= 5 && currentLevel >= unlockLevel
+        }
+    }
+    
+    /// ✅ NOUVEAU - Débloquer tous les compagnons en masse lors du passage Premium
+    /// Retourne la liste des compagnons nouvellement débloqués
+    func unlockPremiumCompanions() -> [(name: String, imageName: String)] {
+        guard isPremium else { return [] }
+        
+        // Compagnons du niveau 6 jusqu'au niveau actuel (qui étaient bloqués en Free)
+        let companionsByLevel: [Int: [(name: String, imageName: String)]] = [
+            6: [("Olga", "olga")],
+            7: [("Luka", "luka")],
+            8: [("Nina", "nina")],
+            9: [("Seb", "seb")],
+            10: [("Mochi", "mochi"), ("Sève", "seve")],
+            11: [("Jo", "jo")],
+            15: [("Pépite", "pepite")],
+            20: [("Noisette", "noisette")]
+        ]
+        
+        var newlyUnlocked: [(name: String, imageName: String)] = []
+        
+        // Parcourir tous les niveaux entre 6 et le niveau actuel
+        for level in 6...currentLevel {
+            if let companions = companionsByLevel[level] {
+                newlyUnlocked.append(contentsOf: companions)
+            }
+        }
+        
+        return newlyUnlocked
     }
     
     // MARK: - Notification Management
