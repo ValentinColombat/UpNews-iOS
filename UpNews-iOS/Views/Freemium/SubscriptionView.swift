@@ -451,11 +451,11 @@ struct SubscriptionView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
             
-            Link("Conditions d'utilisation", destination: URL(string: "https://upnews.app/terms")!)
+            Link("Conditions d'utilisation", destination: URL(string: "https://valentincolombat.github.io/upnews-CGU/")!)
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
             
-            Link("Politique de confidentialité", destination: URL(string: "https://upnews.app/privacy")!)
+            Link("Politique de confidentialité", destination: URL(string: "https://valentincolombat.github.io/upnews-privacy/")!)
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
         }
