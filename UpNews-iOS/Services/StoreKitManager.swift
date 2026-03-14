@@ -36,6 +36,7 @@ class StoreKitManager: ObservableObject {
     @Published private(set) var subscriptionTier: SubscriptionTier = .free
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var shouldDismissSubscriptionView = false
     
     // MARK: - Product IDs (À configurer dans App Store Connect)
     
@@ -155,6 +156,7 @@ class StoreKitManager: ObservableObject {
     func restorePurchases() async {
         isLoading = true
         errorMessage = nil
+        shouldDismissSubscriptionView = false
         
         do {
             try await AppStore.sync()
@@ -162,6 +164,18 @@ class StoreKitManager: ObservableObject {
             
             if subscriptionTier == .premium {
                 await syncSubscriptionWithSupabase(tier: .premium)
+                
+                // ✅ Succès : Abonnement Premium restauré
+                errorMessage = nil
+                print("✅ Restauration réussie : Premium activé")
+                
+                // Fermer la vue après un court délai
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconde
+                shouldDismissSubscriptionView = true
+            } else {
+                // ⚠️ Aucun abonnement trouvé
+                errorMessage = "Aucun abonnement actif trouvé. Veuillez souscrire à un abonnement."
+                print("⚠️ Restauration : Aucun abonnement trouvé")
             }
             
             isLoading = false
@@ -222,34 +236,116 @@ class StoreKitManager: ObservableObject {
     
     // MARK: - Sync with Supabase
     
-    /// Synchroniser le statut d'abonnement avec Supabase
+    
     private func syncSubscriptionWithSupabase(tier: SubscriptionTier) async {
         do {
-            let session = try await SupabaseConfig.client.auth.session
+            // Vérifier que l'utilisateur est authentifié
+            _ = try await SupabaseConfig.client.auth.session
             
-            struct SubscriptionUpdate: Encodable {
-                let subscription_tier: String
-                let subscription_updated_at: String
+            // Validation via Edge Function (production avec vraies transactions)
+            do {
+                try await validateSubscriptionWithBackend()
+                print("✅ Validation backend réussie")
+            } catch {
+                print("⚠️ Validation backend échouée: \(error)")
+                
+                #if DEBUG
+                // En mode DEBUG (tests StoreKit), on met à jour directement la base
+                if tier == .premium {
+                    do {
+                        try await updateSubscriptionTierDirectly(tier: "premium")
+                    } catch {
+                        print("❌ Impossible de mettre à jour le tier en mode test: \(error)")
+                        print("⚠️ L'abonnement local fonctionne mais la synchro Supabase a échoué")
+                    }
+                }
+                #else
+                // En PRODUCTION, on ne fait rien si l'Edge Function échoue
+                print("❌ PRODUCTION : Validation échouée, abonnement non activé")
+                throw error
+                #endif
             }
             
-            let update = SubscriptionUpdate(
-                subscription_tier: tier.rawValue,
-                subscription_updated_at: ISO8601DateFormatter().string(from: Date())
-            )
-            
-            try await SupabaseConfig.client
-                .from("users")
-                .update(update)
-                .eq("id", value: session.user.id.uuidString)
-                .execute()
-            
-            print("✅ Statut abonnement synchronisé avec Supabase: \(tier.rawValue)")
-            
             // Mettre à jour le UserDataService
-            try await UserDataService.shared.loadAllData()
+            do {
+                try await UserDataService.shared.loadAllData()
+                print("✅ Données utilisateur rechargées après passage Premium")
+            } catch {
+                print("⚠️ Erreur rechargement données: \(error)")
+            }
             
         } catch {
             print("❌ Erreur synchronisation abonnement avec Supabase: \(error)")
+        }
+    }
+    
+    /// Met à jour directement le subscription_tier dans Supabase (pour les tests)
+    private func updateSubscriptionTierDirectly(tier: String) async throws {
+        print("🔄 Mise à jour directe du subscription_tier en mode test...")
+        
+        // Utiliser une fonction RPC avec SECURITY DEFINER pour contourner les RLS
+        do {
+            let params: [String: String] = ["p_tier": tier]
+            
+            try await SupabaseConfig.client
+                .rpc("update_subscription_tier_test", params: params)
+                .execute()
+            
+            print("✅ subscription_tier mis à jour via RPC dans Supabase")
+        } catch {
+            print("❌ Erreur RPC update_subscription_tier_test: \(error)")
+            print("ℹ️  Assurez-vous que la fonction RPC existe dans Supabase")
+            
+            throw error
+        }
+    }
+    
+    /// Valide l'abonnement auprès du backend via Edge Function
+    private func validateSubscriptionWithBackend() async throws {
+        print("🔄 Appel Edge Function validate-subscription...")
+        
+        // Récupérer la dernière transaction vérifiée
+        var latestTransaction: Transaction?
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                if productIDs.contains(transaction.productID) {
+                    latestTransaction = transaction
+                    break
+                }
+            }
+        }
+        
+        guard let transaction = latestTransaction else {
+            throw NSError(domain: "StoreKit", code: -2, userInfo: [NSLocalizedDescriptionKey: "Aucune transaction trouvée"])
+        }
+        
+        print("   📤 Transaction ID: \(transaction.originalID)")
+        
+        // ⚠️ En mode test StoreKit, l'ID est souvent 0, ce qui fait échouer la validation
+        // On lève une erreur pour permettre la mise à jour directe
+        if transaction.originalID == 0 {
+            print("⚠️ Transaction ID = 0 détecté (mode test StoreKit)")
+            throw NSError(domain: "StoreKit", code: -3, userInfo: [NSLocalizedDescriptionKey: "Mode test StoreKit - validation backend ignorée"])
+        }
+        
+        // Préparer la requête
+        let requestBody: [String: Any] = [
+            "originalTransactionId": String(transaction.originalID)
+        ]
+        
+        let jsonData = try JSONSerialization.data(withJSONObject: requestBody)
+        
+        // Appeler l'Edge Function
+        do {
+            try await SupabaseConfig.client.functions.invoke(
+                "validate-subscription",
+                options: FunctionInvokeOptions(body: jsonData)
+            )
+            
+            print("✅ Edge Function appelée avec succès")
+        } catch {
+            print("❌ Erreur Edge Function: \(error)")
+            throw error
         }
     }
     

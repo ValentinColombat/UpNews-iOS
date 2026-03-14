@@ -133,7 +133,9 @@ struct CompanionsView: View {
         .onChange(of: userDataService.subscriptionTier) { oldTier, newTier in
             // ✅ NOUVEAU - Détecter le passage à Premium
             if oldTier == .free && newTier == .premium {
-                handleUpgradeToPremium()
+                Task { @MainActor in
+                    handleUpgradeToPremium()
+                }
             }
         }
         .fullScreenCover(isPresented: $showNotificationPermission) {

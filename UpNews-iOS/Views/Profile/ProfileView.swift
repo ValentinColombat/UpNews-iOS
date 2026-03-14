@@ -5,12 +5,15 @@ import Auth
 struct ProfileView: View {
     
     @StateObject private var authService = AuthService.shared
+    @StateObject private var storeManager = StoreKitManager.shared
     @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false // ✅ NOUVEAU
     @State private var isDeleting = false // ✅ NOUVEAU
     @State private var deleteError: String? // ✅ NOUVEAU
     @State private var showAccountDeletionInfo = false // ✅ NOUVEAU
+    @State private var showSubscriptionView = false // ✅ NOUVEAU - pour le modal Premium
+    @State private var showPremiumInfo = false // ✅ NOUVEAU - pour les utilisateurs déjà Premium
     
     // Uniquement les données locales à la vue
     @State private var userEmail = ""
@@ -43,6 +46,11 @@ struct ProfileView: View {
                         
                         // Statistiques
                         statsGrid
+                            .padding(.top, 20)
+                            .padding(.horizontal, 20)
+                        
+                        // Premium Section
+                        premiumSection
                             .padding(.top, 20)
                             .padding(.horizontal, 20)
                         
@@ -94,7 +102,7 @@ struct ProfileView: View {
                 }
             }
         } message: {
-            Text("⚠️ Cette action est irréversible. Toutes vos données (profil, progression, articles lus) seront définitivement supprimées.")
+            Text("Cette action est irréversible. Toutes vos données (profil, progression, articles lus) seront définitivement supprimées.")
         }
         // ✅ NOUVEAU - Alert d'erreur
         .alert("Erreur", isPresented: Binding(
@@ -105,6 +113,21 @@ struct ProfileView: View {
         } message: {
             if let error = deleteError {
                 Text(error)
+            }
+        }
+        // ✅ NOUVEAU - Modal d'abonnement (pour utilisateurs gratuits)
+        .fullScreenCover(isPresented: $showSubscriptionView) {
+            SubscriptionView(onDismiss: {
+                showSubscriptionView = false
+            })
+            .environmentObject(userDataService)
+        }
+        // ✅ NOUVEAU - Fiche Premium (pour utilisateurs déjà Premium)
+        .overlay {
+            if showPremiumInfo {
+                PremiumInfoSheet(onDismiss: {
+                    showPremiumInfo = false
+                })
             }
         }
     }
@@ -159,11 +182,50 @@ struct ProfileView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(Color.white.opacity(0.85))
                     .shadow(radius: 3)
+                
+                // Badge Premium sous l'email
+                premiumBadge
+                    .padding(.top, 4)
             }
         }
-        .frame(height: 220)
+        .frame(height: 240) // Augmenté de 220 à 240 pour accommoder le badge
         .clipShape(RoundedRectangle(cornerRadius: 30))
         .padding(.horizontal, 20)
+    }
+    
+    // MARK: - Premium Badge (dans le header)
+    
+    private var premiumBadge: some View {
+        Button {
+            // Si l'utilisateur est Premium, on affiche PremiumInfoSheet
+            // Sinon, on affiche SubscriptionView
+            if storeManager.subscriptionTier == .premium {
+                showPremiumInfo = true
+            } else {
+                showSubscriptionView = true
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: storeManager.subscriptionTier == .premium ? "crown.fill" : "crown")
+                    .font(.system(size: 12, weight: .bold))
+                
+                Text(storeManager.subscriptionTier == .premium ? "Premium" : "Gratuit")
+                    .font(.system(size: 13, weight: .bold))
+            }
+            .foregroundColor(storeManager.subscriptionTier == .premium ? .upNewsOrange : .white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(storeManager.subscriptionTier == .premium ? Color.white : Color.white.opacity(0.25))
+                    .shadow(
+                        color: storeManager.subscriptionTier == .premium ? Color.upNewsOrange.opacity(0.3) : Color.black.opacity(0.1),
+                        radius: storeManager.subscriptionTier == .premium ? 8 : 4,
+                        y: 2
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
     
     private var decorativeElements: some View {
@@ -226,6 +288,207 @@ struct ProfileView: View {
                 iconColor: Color.upNewsBlueMid,
                 valueColor: Color.upNewsBlueMid
             )
+        }
+    }
+    
+    // MARK: - Premium Section
+    
+    private var premiumSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(storeManager.subscriptionTier == .premium ? "Mon abonnement" : "Premium")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
+                .padding(.horizontal, 4)
+            
+            if storeManager.subscriptionTier == .premium {
+                // Version Premium : Voir mes avantages
+                premiumActiveBanner
+            } else {
+                // Version Gratuite : Passez Premium
+                premiumUpgradeBanner
+            }
+        }
+    }
+    
+    // Banner pour les utilisateurs Premium
+    private var premiumActiveBanner: some View {
+        Button {
+            showPremiumInfo = true
+        } label: {
+            HStack(spacing: 14) {
+                // Icône Premium
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                    
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("Premium")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.upNewsBlack)
+                        
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.upNewsGreen)
+                    }
+                    
+                    Text("Voir mes avantages")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.gray.opacity(0.4))
+            }
+            .padding(18)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: Color.upNewsOrange.opacity(0.15), radius: 12, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.upNewsOrange.opacity(0.3), Color.upNewsOrange.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // Banner pour les utilisateurs Gratuits
+    private var premiumUpgradeBanner: some View {
+        Button {
+            showSubscriptionView = true
+        } label: {
+            VStack(spacing: 0) {
+                // Section principale
+                HStack(spacing: 14) {
+                    // Icône avec dégradé
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.upNewsOrange, Color.upNewsOrange.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 56, height: 56)
+                            .shadow(color: Color.upNewsOrange.opacity(0.3), radius: 8, y: 3)
+                        
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Passez Premium")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.upNewsBlack)
+                        
+                        Text("Débloquez tous les avantages")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.right.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.upNewsOrange)
+                }
+                .padding(18)
+                
+                // Séparateur
+                Divider()
+                    .padding(.horizontal, 18)
+                
+                // Avantages rapides
+                VStack(spacing: 10) {
+                    premiumFeatureRow(icon: "newspaper.fill", text: "Tous les articles")
+                    premiumFeatureRow(icon: "headphones", text: "Audio haute qualité")
+                    premiumFeatureRow(icon: "pawprint.fill", text: "Tous les compagnons")
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 14)
+                
+                // Badge essai gratuit
+                HStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Image(systemName: "gift.fill")
+                            .font(.system(size: 12))
+                        Text("14 jours d'essai gratuit")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.upNewsOrange)
+                    )
+                    Spacer()
+                }
+                .padding(.bottom, 16)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: Color.upNewsOrange.opacity(0.2), radius: 16, y: 6)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.upNewsOrange.opacity(0.4), Color.upNewsOrange.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func premiumFeatureRow(icon: String, text: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.upNewsBlueMid)
+                .frame(width: 20)
+            
+            Text(text)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.upNewsBlack.opacity(0.8))
+            
+            Spacer()
+            
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(.upNewsGreen)
         }
     }
     

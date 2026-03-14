@@ -1173,6 +1173,10 @@ struct ArticleDetailView: View {
         
         // Observer le temps de lecture
         let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
+        
+        // ✅ Capturer isPremium avant d'entrer dans la closure @Sendable
+        let isPremiumUser = userDataService.isPremium
+        
         timeObserver = audioPlayer?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
             let currentSeconds = CMTimeGetSeconds(time)
             if currentSeconds.isFinite {
@@ -1182,7 +1186,7 @@ struct ArticleDetailView: View {
                 self.updateNowPlayingInfo()
                 
                 // ✅ NOUVEAU - Limitation audio Free à 15 secondes
-                if !self.userDataService.isPremium && currentSeconds >= self.freeAudioLimit && !self.audioLimitReached {
+                if !isPremiumUser && currentSeconds >= self.freeAudioLimit && !self.audioLimitReached {
                     self.audioLimitReached = true
                     self.pause()
                 }

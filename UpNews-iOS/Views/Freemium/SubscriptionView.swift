@@ -14,7 +14,6 @@ struct SubscriptionView: View {
     
     @State private var selectedProductID: String?
     @State private var showError = false
-    @State private var showSuccess = false
     @State private var showContent = false // ✅ Pour l'animation d'apparition
     
     var body: some View {
@@ -118,16 +117,16 @@ struct SubscriptionView: View {
         } message: {
             Text(storeManager.errorMessage ?? "Une erreur est survenue")
         }
-        .alert("Bienvenue en Premium !", isPresented: $showSuccess) {
-            Button("Super !") {
-                dismissView()
-            }
-        } message: {
-            Text("Tous tes avantages sont maintenant débloqués")
-        }
         .onChange(of: storeManager.subscriptionTier) { _, newTier in
             if newTier == .premium {
-                showSuccess = true
+                // Fermer directement sans alerte
+                dismissView()
+            }
+        }
+        .onChange(of: storeManager.shouldDismissSubscriptionView) { _, shouldDismiss in
+            if shouldDismiss {
+                dismissView()
+                storeManager.shouldDismissSubscriptionView = false
             }
         }
     }
@@ -471,11 +470,8 @@ struct SubscriptionView: View {
         
         Task {
             do {
-                let transaction = try await storeManager.purchase(product)
-                if transaction != nil {
-                    // Achat réussi
-                    showSuccess = true
-                }
+                _ = try await storeManager.purchase(product)
+                // L'achat réussi fermera automatiquement la vue via onChange(of: subscriptionTier)
             } catch {
                 showError = true
             }

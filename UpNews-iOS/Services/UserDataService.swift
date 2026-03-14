@@ -86,8 +86,19 @@ class UserDataService: ObservableObject {
     
     // MARK: - Data Loading
     
+    private var isLoadingData = false
+    
     /// Charge TOUTES les données utilisateur (streak, articles, profil)
     func loadAllData() async throws {
+        // Éviter les appels multiples simultanés
+        guard !isLoadingData else {
+            print("⚠️ loadAllData déjà en cours, appel ignoré")
+            return
+        }
+        
+        isLoadingData = true
+        defer { isLoadingData = false }
+        
         // STOCKER L'userId dès le début
         let session = try await SupabaseConfig.client.auth.session
         currentUserId = session.user.id.uuidString
@@ -477,6 +488,9 @@ class UserDataService: ObservableObject {
     /// Retourne la liste des compagnons nouvellement débloqués
     func unlockPremiumCompanions() -> [(name: String, imageName: String)] {
         guard isPremium else { return [] }
+        
+        // Si l'utilisateur est niveau < 6, il n'y a pas de compagnons premium à débloquer
+        guard currentLevel >= 6 else { return [] }
         
         // Compagnons du niveau 6 jusqu'au niveau actuel (qui étaient bloqués en Free)
         let companionsByLevel: [Int: [(name: String, imageName: String)]] = [
