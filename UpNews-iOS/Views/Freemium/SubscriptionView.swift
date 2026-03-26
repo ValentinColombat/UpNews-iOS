@@ -49,6 +49,33 @@ struct SubscriptionView: View {
                                 ProgressView()
                                     .scaleEffect(1.5)
                                     .padding()
+                            } else if storeManager.products.isEmpty {
+                                // Erreur : produits non chargés
+                                VStack(spacing: 12) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 32))
+                                        .foregroundColor(.orange)
+                                    
+                                    Text(storeManager.errorMessage ?? "Impossible de charger les abonnements")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                    
+                                    Button {
+                                        Task {
+                                            await storeManager.loadProducts()
+                                        }
+                                    } label: {
+                                        Text("Réessayer")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 24)
+                                            .padding(.vertical, 10)
+                                            .background(Color.upNewsOrange)
+                                            .cornerRadius(12)
+                                    }
+                                }
+                                .padding(.vertical, 16)
                             } else {
                                 productsSection
                             }
@@ -65,7 +92,7 @@ struct SubscriptionView: View {
                         .padding(.horizontal, 24)
                         .padding(.bottom, 32)
                     }
-                    .frame(maxHeight: 640) // Réduit de 700 à 640
+                    .frame(maxHeight: UIDevice.current.userInterfaceIdiom == .pad ? .infinity : 640)
                 }
                 .background(
                     // Effet glassmorphique moderne (comme UnlockCompanionPopup)
@@ -101,7 +128,8 @@ struct SubscriptionView: View {
                     }
                 )
                 .shadow(color: .upNewsOrange.opacity(0.3), radius: 40, x: 0, y: 20)
-                .padding(.horizontal, 24)
+                .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 500 : .infinity)
+                .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 40 : 24)
                 .padding(.bottom, 20) // Espace au-dessus de la tab bar
                 .scaleEffect(showContent ? 1 : 0.8)
                 .opacity(showContent ? 1 : 0)
@@ -302,7 +330,7 @@ struct SubscriptionView: View {
                     }
                     
                     // Badge REDUCTION (si annuel)
-                    if product.id.contains("yearly"), let discount = storeManager.yearlyDiscount {
+                    if product.id.contains(".y"), let discount = storeManager.yearlyDiscount {
                         Text("-\(discount)")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.white)
@@ -337,15 +365,13 @@ struct SubscriptionView: View {
                             .foregroundColor(.upNewsBlack)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
-                            .fixedSize()
                         
                         // Prix avec période (orange)
-                        Text(isRecommended ? "39,99 € / an" : "3,99 € / mois")
+                        Text("\(product.displayPrice) / \(isRecommended ? "an" : "mois")")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.upNewsOrange)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
-                            .fixedSize()
                     }
                     
                     Spacer(minLength: 0)

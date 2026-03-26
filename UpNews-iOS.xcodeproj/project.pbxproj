@@ -18,8 +18,8 @@
 		15C2F4172EEEF78500A1F346 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 15C2F4162EEEF78500A1F346 /* Supabase */; };
 		15C4E0C62EF2A17400ED02C5 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 15C4E0C52EF2A17400ED02C5 /* Lottie */; };
 		15D173222F5F219F00578A81 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15D173212F5F219F00578A81 /* StoreKit.framework */; };
+		15DDC1472F752FC80010E553 /* StoreKitConfig.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 15DDC1462F752FC80010E553 /* StoreKitConfig.storekit */; };
 		15F253702F27D625001CE804 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 15F2536F2F27D625001CE804 /* ConfettiSwiftUI */; };
-		15F8599F2F5F1817004BFAAF /* StoreKitConfig.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 15F8599E2F5F1817004BFAAF /* StoreKitConfig.storekit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,7 +79,7 @@
 		15C2F4052EEEF4F000A1F346 /* UpNews-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15C2F4062EEEF4F000A1F346 /* UpNews-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "UpNews-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15D173212F5F219F00578A81 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
-		15F8599E2F5F1817004BFAAF /* StoreKitConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfig.storekit; sourceTree = "<group>"; };
+		15DDC1462F752FC80010E553 /* StoreKitConfig.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StoreKitConfig.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -194,7 +194,7 @@
 		15C90B732EED7865003728A0 = {
 			isa = PBXGroup;
 			children = (
-				15F8599E2F5F1817004BFAAF /* StoreKitConfig.storekit */,
+				15DDC1462F752FC80010E553 /* StoreKitConfig.storekit */,
 				15076A342F3B325600C8506D /* UpNewsWidgetExtension.entitlements */,
 				15C90B7E2EED7865003728A0 /* UpNews-iOS */,
 				15C90B8C2EED7867003728A0 /* UpNews-iOSTests */,
@@ -380,7 +380,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				15F8599F2F5F1817004BFAAF /* StoreKitConfig.storekit in Resources */,
+				15DDC1472F752FC80010E553 /* StoreKitConfig.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -457,7 +457,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = UpNewsWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 25433VGSHH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = UpNewsWidget/Info.plist;
@@ -494,7 +494,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = UpNewsWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 25433VGSHH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = UpNewsWidget/Info.plist;
@@ -647,7 +647,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "UpNews-iOS/UpNews-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 25433VGSHH;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -699,7 +699,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "UpNews-iOS/UpNews-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 25433VGSHH;
 				ENABLE_APP_SANDBOX = YES;

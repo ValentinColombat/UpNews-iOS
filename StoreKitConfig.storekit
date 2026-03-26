@@ -9,7 +9,7 @@
       }
     ]
   },
-  "identifier" : "B78603AA",
+  "identifier" : "67C8FC6A",
   "nonRenewingSubscriptions" : [
 
   ],
@@ -17,11 +17,14 @@
 
   ],
   "settings" : {
+    "_applicationInternalID" : "6759056393",
     "_askToBuyEnabled" : false,
     "_billingGracePeriodEnabled" : false,
     "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "25433VGSHH",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 796209104.19357204,
     "_locale" : "fr",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "FRA",
@@ -32,7 +35,7 @@
   },
   "subscriptionGroups" : [
     {
-      "id" : "7E293F66",
+      "id" : "21977848",
       "localizations" : [
 
       ],
@@ -47,29 +50,30 @@
           ],
           "displayPrice" : "3.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "43370632",
+          "groupNumber" : 2,
+          "internalID" : "6760582474",
           "introductoryOffer" : {
-            "internalID" : "C170A591",
+            "internalID" : "F207C690",
+            "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P2W"
           },
           "localizations" : [
             {
-              "description" : "Access all positive news without limits",
-              "displayName" : "UpNews Premium",
+              "description" : "Access all positive news without limits.",
+              "displayName" : "UpNews Premium - Monthly",
               "locale" : "en_US"
             },
             {
               "description" : "Accédez à toutes les actualités positives sans limite",
-              "displayName" : "UpNews Premium",
+              "displayName" : "pNews Premium – Mensuel",
               "locale" : "fr"
             }
           ],
-          "productID" : "com.valentin.upnews.premium.monthly",
+          "productID" : "com.valentin.upnews.premium.m",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "UpNews Premium Monthly",
-          "subscriptionGroupID" : "7E293F66",
+          "subscriptionGroupID" : "21977848",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
 
@@ -82,31 +86,32 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "39.99",
+          "displayPrice" : "34.99",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "70B88577",
+          "internalID" : "6760582489",
           "introductoryOffer" : {
-            "internalID" : "CC451AD4",
+            "internalID" : "8DF45859",
+            "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P2W"
           },
           "localizations" : [
             {
-              "description" : "All premium features at a reduced price.",
-              "displayName" : "UpNews Premium - Yearly",
-              "locale" : "en_US"
+              "description" : "Toutes les fonctionnalités premium à prix réduit.",
+              "displayName" : "UpNews Premium – Annuel",
+              "locale" : "fr"
             },
             {
-              "description" : "Toutes les fonctionnalités premium à prix réduit. ",
-              "displayName" : "UpNews Premium - Annuel",
-              "locale" : "fr"
+              "description" : "Access all positive news without limits.",
+              "displayName" : "UpNews Premium - Annual",
+              "locale" : "en_US"
             }
           ],
-          "productID" : "com.valentin.upnews.premium.yearly",
+          "productID" : "com.valentin.upnews.premium.y",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "UpNews Premium Yearly",
-          "subscriptionGroupID" : "7E293F66",
+          "referenceName" : "UpNews Premium Yearly ",
+          "subscriptionGroupID" : "21977848",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
 

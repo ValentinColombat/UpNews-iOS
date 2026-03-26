@@ -41,8 +41,8 @@ class StoreKitManager: ObservableObject {
     // MARK: - Product IDs (À configurer dans App Store Connect)
     
     private let productIDs: [String] = [
-        "com.valentin.upnews.premium.monthly",  // Abonnement mensuel
-        "com.valentin.upnews.premium.yearly"     // Abonnement annuel
+        "com.valentin.upnews.premium.m",  // Abonnement mensuel
+        "com.valentin.upnews.premium.y"   // Abonnement annuel
     ]
     
     // MARK: - Transaction Listener
@@ -190,6 +190,7 @@ class StoreKitManager: ObservableObject {
     
     /// Mettre à jour le statut d'abonnement en fonction des transactions
     func updateSubscriptionStatus() async {
+        let previousTier = subscriptionTier
         var hasPremium = false
         
         // Vérifier les transactions actives
@@ -202,8 +203,15 @@ class StoreKitManager: ObservableObject {
             }
         }
         
-        subscriptionTier = hasPremium ? .premium : .free
+        let newTier: SubscriptionTier = hasPremium ? .premium : .free
+        subscriptionTier = newTier
         print("🔄 Statut abonnement mis à jour: \(subscriptionTier.rawValue)")
+        
+        // Synchroniser avec Supabase si le tier a changé (premium → free)
+        if previousTier == .premium && newTier == .free {
+            print("⚠️ Passage de premium → free détecté, synchronisation Supabase...")
+            await syncSubscriptionWithSupabase(tier: .free)
+        }
     }
     
     // MARK: - Listen for Transactions
@@ -242,34 +250,42 @@ class StoreKitManager: ObservableObject {
             // Vérifier que l'utilisateur est authentifié
             _ = try await SupabaseConfig.client.auth.session
             
-            // Validation via Edge Function (production avec vraies transactions)
-            do {
-                try await validateSubscriptionWithBackend()
-                print("✅ Validation backend réussie")
-            } catch {
-                print("⚠️ Validation backend échouée: \(error)")
-                
-                #if DEBUG
-                // En mode DEBUG (tests StoreKit), on met à jour directement la base
-                if tier == .premium {
+            if tier == .free {
+                // Passage en free : mise à jour directe dans Supabase
+                do {
+                    try await updateSubscriptionTierDirectly(tier: "free")
+                    print("✅ Supabase mis à jour : free")
+                } catch {
+                    print("❌ Erreur mise à jour Supabase vers free: \(error)")
+                }
+            } else {
+                // Passage en premium : validation via Edge Function
+                do {
+                    try await validateSubscriptionWithBackend()
+                    print("✅ Validation backend réussie")
+                } catch {
+                    print("⚠️ Validation backend échouée: \(error)")
+                    
+                    #if DEBUG
+                    // En mode DEBUG (tests StoreKit), on met à jour directement la base
                     do {
                         try await updateSubscriptionTierDirectly(tier: "premium")
                     } catch {
                         print("❌ Impossible de mettre à jour le tier en mode test: \(error)")
                         print("⚠️ L'abonnement local fonctionne mais la synchro Supabase a échoué")
                     }
+                    #else
+                    // En PRODUCTION, on ne fait rien si l'Edge Function échoue
+                    print("❌ PRODUCTION : Validation échouée, abonnement non activé")
+                    throw error
+                    #endif
                 }
-                #else
-                // En PRODUCTION, on ne fait rien si l'Edge Function échoue
-                print("❌ PRODUCTION : Validation échouée, abonnement non activé")
-                throw error
-                #endif
             }
             
             // Mettre à jour le UserDataService
             do {
                 try await UserDataService.shared.loadAllData()
-                print("✅ Données utilisateur rechargées après passage Premium")
+                print("✅ Données utilisateur rechargées après changement de tier")
             } catch {
                 print("⚠️ Erreur rechargement données: \(error)")
             }
@@ -353,12 +369,12 @@ class StoreKitManager: ObservableObject {
     
     /// Obtenir le produit mensuel
     var monthlyProduct: Product? {
-        products.first { $0.id == "com.valentin.upnews.premium.monthly" }
+        products.first { $0.id == "com.valentin.upnews.premium.m" }
     }
     
     /// Obtenir le produit annuel
     var yearlyProduct: Product? {
-        products.first { $0.id == "com.valentin.upnews.premium.yearly" }
+        products.first { $0.id == "com.valentin.upnews.premium.y" }
     }
     
     /// Calculer les économies annuelles (si applicable)
