@@ -41,6 +41,7 @@ struct ArticleDetailView: View {
     @State private var isFavorite = false
     @State private var hasClaimedXp = false
     @State private var hasMarkedAsRead = false
+    @State private var interactionsLoaded = false
     @State private var screenHeight: CGFloat = 600 // Valeur par défaut
     
     // Déblocage de nouveaux compagnons avec confettis
@@ -597,7 +598,8 @@ struct ArticleDetailView: View {
             .cornerRadius(20)
             .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 2)
         }
-        .disabled(hasClaimedXp)
+        .disabled(hasClaimedXp || !interactionsLoaded)
+        .opacity(interactionsLoaded ? 1.0 : 0.6)
     }
     
     // MARK: - Return to Home Button
@@ -741,6 +743,7 @@ struct ArticleDetailView: View {
         } catch {
             print("Erreur lors du chargement des interactions: \(error.localizedDescription)")
         }
+        interactionsLoaded = true
     }
     
     private func toggleLike() async {
@@ -783,7 +786,7 @@ struct ArticleDetailView: View {
                     is_liked: field == "is_liked" ? value : false,
                     is_favorite: field == "is_favorite" ? value : false,
                     is_read: field == "is_read" ? value : false,
-                    has_claimed_xp: false
+                    has_claimed_xp: hasClaimedXp
                 )
                 
                 try await SupabaseConfig.client
@@ -866,9 +869,9 @@ struct ArticleDetailView: View {
                     article_id: article.id.uuidString,
                     is_read: true,
                     read_at: readAt,
-                    is_liked: false,
-                    is_favorite: false,
-                    has_claimed_xp: false
+                    is_liked: isLiked,
+                    is_favorite: isFavorite,
+                    has_claimed_xp: hasClaimedXp
                 )
                 
                 try await SupabaseConfig.client
@@ -940,9 +943,9 @@ struct ArticleDetailView: View {
         
         Task {
             do {
+                try await markArticleAsRead() // S'assurer que la ligne existe d'abord
+                try await markXpAsClaimed()  // Puis marquer le claim
                 try await userDataService.saveXpAndLevel()
-                try await markXpAsClaimed()  // Marquer le claim (pas la lecture)
-                try await markArticleAsRead() // S'assurer que l'article est aussi marqué comme lu
                 
                 if didLevelUp {
                     checkUnlockedCompanions(newLevel: userDataService.currentLevel)
