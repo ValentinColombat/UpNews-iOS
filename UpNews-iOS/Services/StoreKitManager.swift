@@ -250,6 +250,12 @@ class StoreKitManager: ObservableObject {
             // Vérifier que l'utilisateur est authentifié
             _ = try await SupabaseConfig.client.auth.session
             
+            // Ne JAMAIS rétrograder un OG Member vers free
+            if tier == .free && UserDataService.shared.isOGMember {
+                print("🛡️ OG Member protégé - pas de rétrogradation vers free")
+                return
+            }
+            
             if tier == .free {
                 // Passage en free : mise à jour directe dans Supabase
                 do {

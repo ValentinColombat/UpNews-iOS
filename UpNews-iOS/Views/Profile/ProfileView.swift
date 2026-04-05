@@ -5,8 +5,7 @@ import Auth
 struct ProfileView: View {
     
     @StateObject private var authService = AuthService.shared
-    @StateObject private var storeManager = StoreKitManager.shared
-    @EnvironmentObject private var userDataService: UserDataService // ✅ CHANGÉ en @EnvironmentObject
+    @EnvironmentObject private var userDataService: UserDataService
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false // ✅ NOUVEAU
     @State private var isDeleting = false // ✅ NOUVEAU
@@ -199,28 +198,28 @@ struct ProfileView: View {
         Button {
             // Si l'utilisateur est Premium, on affiche PremiumInfoSheet
             // Sinon, on affiche SubscriptionView
-            if storeManager.subscriptionTier == .premium {
+            if userDataService.isPremium {
                 showPremiumInfo = true
             } else {
                 showSubscriptionView = true
             }
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: storeManager.subscriptionTier == .premium ? "crown.fill" : "crown")
+                Image(systemName: userDataService.isPremium ? "crown.fill" : "crown")
                     .font(.system(size: 12, weight: .bold))
                 
-                Text(storeManager.subscriptionTier == .premium ? "Premium" : "Gratuit")
+                Text(userDataService.isPremium ? "Premium" : "Gratuit")
                     .font(.system(size: 13, weight: .bold))
             }
-            .foregroundColor(storeManager.subscriptionTier == .premium ? .upNewsOrange : .white)
+            .foregroundColor(userDataService.isPremium ? .upNewsOrange : .white)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(storeManager.subscriptionTier == .premium ? Color.white : Color.white.opacity(0.25))
+                    .fill(userDataService.isPremium ? Color.white : Color.white.opacity(0.25))
                     .shadow(
-                        color: storeManager.subscriptionTier == .premium ? Color.upNewsOrange.opacity(0.3) : Color.black.opacity(0.1),
-                        radius: storeManager.subscriptionTier == .premium ? 8 : 4,
+                        color: userDataService.isPremium ? Color.upNewsOrange.opacity(0.3) : Color.black.opacity(0.1),
+                        radius: userDataService.isPremium ? 8 : 4,
                         y: 2
                     )
             )
@@ -295,12 +294,12 @@ struct ProfileView: View {
     
     private var premiumSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(storeManager.subscriptionTier == .premium ? "Mon abonnement" : "Premium")
+            Text(userDataService.isPremium ? "Mon abonnement" : "Premium")
                 .font(.system(size: 17, weight: .bold))
                 .foregroundColor(Color(red: 0.17, green: 0.24, blue: 0.21))
                 .padding(.horizontal, 4)
             
-            if storeManager.subscriptionTier == .premium {
+            if userDataService.isPremium {
                 // Version Premium : Voir mes avantages
                 premiumActiveBanner
             } else {
